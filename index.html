@@ -672,10 +672,76 @@ table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
    ============================================================ */
 @media print{
   .app-header, .input-panel, .export-row, .grain-overlay, .results-tabs{display:none !important;}
-  body{background:white; color:black;}
-  .glass{background:white; border:1px solid #ccc; box-shadow:none;}
-  .app-shell{grid-template-columns:1fr; display:block;}
+  body{background:white !important; color:#111 !important;}
+  .glass{background:white !important; border:1px solid #ccc !important; box-shadow:none !important;}
+  .app-shell{grid-template-columns:1fr !important; display:block !important;}
   .rtab-content{display:block !important;}
+
+  /* Override all dark-theme CSS variables with print-safe equivalents */
+  :root{
+    --bg-0:#ffffff;
+    --bg-1:#f8f8f8;
+    --bg-2:#f0f0f0;
+    --text-0:#111111;
+    --text-1:#333333;
+    --text-2:#555555;
+    --text-3:#777777;
+    --accent-cyan:#0077aa;
+    --accent-amber:#cc6600;
+    --accent-violet:#6633cc;
+    --accent-red:#cc2200;
+    --accent-green:#007744;
+    --panel:rgba(255,255,255,1);
+    --panel-border:rgba(0,0,0,0.15);
+    --panel-border-strong:rgba(0,0,0,0.25);
+  }
+
+  /* SVG diagram elements — force dark strokes on white */
+  .diagram-svg{ display:block !important; }
+  .diagram-svg text{ fill:#111 !important; font-family:monospace !important; }
+  .diagram-svg .beam-line{ stroke:#111 !important; }
+  .diagram-svg .axis-line{ stroke:#444 !important; }
+  .diagram-svg .grid-tick{ stroke:#bbb !important; }
+  .diagram-svg .zero-line{ stroke:#888 !important; }
+  .diagram-svg .label-text{ fill:#444 !important; }
+  .diagram-svg .value-text{ fill:#111 !important; font-weight:700 !important; }
+  .diagram-svg .curve-positive{ fill:rgba(0,119,170,0.15) !important; stroke:#0077aa !important; }
+  .diagram-svg .curve-negative{ fill:rgba(204,102,0,0.15) !important; stroke:#cc6600 !important; }
+  .diagram-svg .curve-line{ stroke:#0077aa !important; }
+  .diagram-svg .support-tri{ fill:#555 !important; stroke:#222 !important; }
+  .diagram-svg .support-fixed{ fill:#555 !important; stroke:#222 !important; }
+  .diagram-svg .load-arrow{ stroke:#cc6600 !important; }
+  .diagram-svg .udl-fill{ fill:rgba(204,102,0,0.15) !important; stroke:#cc6600 !important; }
+  .diagram-svg .moment-arc{ stroke:#6633cc !important; fill:none !important; }
+  .diagram-svg .crit-dot{ fill:#cc6600 !important; stroke:#fff !important; }
+
+  /* Force SVG inline colour attributes to be overridden */
+  .diagram-svg line[stroke="var(--accent-cyan)"]{ stroke:#0077aa !important; }
+  .diagram-svg line[stroke="var(--text-2)"]{ stroke:#555 !important; }
+  .diagram-svg line[stroke="var(--text-3)"]{ stroke:#777 !important; }
+  .diagram-svg line[stroke="rgba(255,255,255,0.12)"]{ stroke:#ccc !important; }
+  .diagram-svg line[stroke="rgba(255,255,255,0.2)"]{ stroke:#aaa !important; }
+  .diagram-svg line[stroke="rgba(255,255,255,0.18)"]{ stroke:#bbb !important; }
+  .diagram-svg circle[stroke="var(--bg-0)"]{ stroke:#fff !important; }
+  .diagram-svg circle[stroke="var(--text-0)"]{ stroke:#111 !important; }
+  .diagram-svg text[fill="var(--accent-cyan)"]{ fill:#0077aa !important; }
+  .diagram-svg text[fill="var(--accent-amber)"]{ fill:#cc6600 !important; }
+
+  /* Diagram block backgrounds */
+  .diagram-block{ background:white !important; border:1px solid #ddd !important; margin-bottom:18px; page-break-inside:avoid; }
+  .diagram-block-title{ color:#333 !important; }
+  .diagram-block-title::before{ background:#0077aa !important; }
+
+  /* Panel scrolling off for print */
+  .panel-scroll{ max-height:none !important; overflow:visible !important; }
+  .diagram-stack{ gap:12px !important; }
+
+  /* Results text */
+  .reaction-card, .verify-row, .formula-block{ background:#f8f8f8 !important; border-color:#ddd !important; }
+  .reaction-value, .reaction-name{ color:#111 !important; }
+  .formula-line{ color:#333 !important; }
+  .verify-status.pass{ background:#e6f5ec !important; color:#007744 !important; }
+  .verify-status.fail{ background:#fdecea !important; color:#cc2200 !important; }
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -729,12 +795,17 @@ table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="field-row">
           <label class="field-label">Beam Type</label>
           <select id="beamType" class="select-input">
-            <option value="simply-supported">Simply Supported Beam</option>
+            <option value="simply-supported">Simply Supported (Pin + Pin)</option>
+            <option value="pin-roller">Simply Supported (Pin + Roller)</option>
+            <option value="roller-pin">Simply Supported (Roller + Pin)</option>
             <option value="cantilever">Cantilever Beam</option>
             <option value="fixed">Fixed Beam</option>
             <option value="overhanging">Overhanging Beam</option>
             <option value="propped-cantilever">Propped Cantilever Beam</option>
             <option value="continuous">Continuous Beam</option>
+            <option value="pin-hinge">Pin Support + Hinge Support</option>
+            <option value="hinge-roller">Hinge Support + Roller Support</option>
+            <option value="roller-hinge">Roller Support + Hinge Support</option>
           </select>
         </div>
 
@@ -755,6 +826,8 @@ table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
             <select id="rightOverhangUnit" class="unit-select"></select>
           </div>
         </div>
+
+        <div id="overhangGeometrySummary" style="display:none; background:rgba(77,216,255,0.06); border:1px solid rgba(77,216,255,0.2); border-radius:8px; padding:10px 13px; font-size:12px; color:var(--text-1); line-height:1.7; margin-top:4px;"></div>
       </section>
 
       <section class="input-section">
@@ -833,7 +906,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="diagram-stack" id="diagramStack" style="display:none;">
       <div class="diagram-block glass">
         <h3 class="diagram-block-title">Beam Diagram &amp; Free Body Diagram (FBD)</h3>
-        <div class="diagram-viewport"><svg id="diagramSVG-beam" class="diagram-svg visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="diagram-viewport"><svg id="diagramSVG-beam" class="diagram-svg visible" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMid meet"></svg></div>
       </div>
       <div class="diagram-block glass">
         <h3 class="diagram-block-title">Shear Force Diagram (SFD)</h3>
@@ -872,6 +945,7 @@ table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="results-tabs" id="resultsTabs">
         <button class="rtab active" data-rtab="reactions">Reactions</button>
         <button class="rtab" data-rtab="formulas">Formulas</button>
+        <button class="rtab" data-rtab="detailed">Detailed Calc</button>
         <button class="rtab" data-rtab="table">Critical Table</button>
         <button class="rtab" data-rtab="verify">Verification</button>
       </div>
@@ -882,6 +956,10 @@ table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
 
       <div class="rtab-content" id="rtab-formulas">
         <div id="formulasOutput" class="results-empty">Run analysis to see formula derivations.</div>
+      </div>
+
+      <div class="rtab-content" id="rtab-detailed">
+        <div id="detailedOutput" class="results-empty">Run analysis to see detailed step-by-step calculations.</div>
       </div>
 
       <div class="rtab-content" id="rtab-table">
@@ -943,7 +1021,13 @@ const UNITS = {
     'lb/ft':4.4482216153/0.3048, 'kip/ft':4448.2216153/0.3048
   },
   moment: { 'N·mm':0.001, 'N·m':1, 'kN·m':1e3, 'MN·m':1e6, 'GN·m':1e9, 'lb·ft':1.3558179483, 'kip·ft':1355.8179483 },
-  EI: { 'N·mm²':1e-6, 'N·m²':1, 'kN·m²':1e3, 'MN·m²':1e6, 'GN·m²':1e9 },
+  EI: {
+    'N·mm²':1e-6, 'N·m²':1, 'kN·m²':1e3, 'MN·m²':1e6, 'GN·m²':1e9,
+    'kip·ft²': 4448.2216153 * 0.3048*0.3048,   // 1 kip·ft² = 4448.22 N * 0.0929 m² ≈ 413.24 N·m²
+    'kip·in²': 4448.2216153 * 0.0254*0.0254,    // 1 kip·in² = 4448.22 N * 6.452e-4 m² ≈ 2.869 N·m²
+    'GPa·m⁴':  1e9,                              // same as GN·m² (Pa·m⁴ = N/m²·m⁴ = N·m²)
+    'MPa·m⁴':  1e6                               // same as MN·m²
+  },
   E: { Pa:1, kPa:1e3, MPa:1e6, GPa:1e9, 'N/mm²':1e6, 'kN/m²':1e3, 'MN/m²':1e6 },
   I: { 'mm⁴':1e-12, 'cm⁴':1e-8, 'm⁴':1, 'in⁴':4.16231426e-7, 'ft⁴':8.630974757e-3 }
 };
@@ -970,6 +1054,7 @@ const STATE = {
   analysisMode: 'textbook',      // textbook | realworld
   engineMode: 'numerical',       // numerical | symbolic
   eiMode: 'direct',              // direct | separate
+  eiIsZero: false,               // true when user sets EI=0
   beamType: 'simply-supported',
   numSpans: 1,
   spanLengths: [],                // base meters, per span
@@ -1016,16 +1101,11 @@ function beamSupportCount(beamType, numSpans){
 }
 
 function supportTypeFor(beamType, supportIndex, totalSupports){
-  // returns 'pin' | 'roller' | 'fixed' | 'free'
+  // returns 'pin' | 'roller' | 'fixed' | 'free' | 'hinge'
   const isLast = supportIndex === totalSupports - 1;
   const isInterior = supportIndex > 0 && !isLast;
 
   if (beamType === 'cantilever'){
-    // Fixed at A (node 0). Every subsequent NODE that is not the very last one is a
-    // real roller prop. The LAST node is never a true support — the final span is
-    // always the free unsupported overhang beyond the last prop (or beyond A itself
-    // if no props have been added), matching how "+ Add Intermediate Support" inserts
-    // a prop strictly between the fixed end and the free tip.
     if (supportIndex === 0) return 'fixed';
     if (isLast) return 'free';
     return 'roller';
@@ -1033,24 +1113,43 @@ function supportTypeFor(beamType, supportIndex, totalSupports){
   if (beamType === 'fixed'){
     if (supportIndex === 0) return 'fixed';
     if (isLast) return 'fixed';
-    return 'roller'; // intermediate prop between two fixed ends
+    return 'roller';
   }
   if (beamType === 'propped-cantilever'){
     if (supportIndex === 0) return 'fixed';
-    return 'roller'; // every other support (incl. interior props) is a roller
+    return 'roller';
   }
   if (beamType === 'simply-supported'){
+    // Both ends are pin supports
     if (supportIndex === 0) return 'pin';
-    return 'roller'; // last AND any interior added supports
+    if (isLast) return 'pin';
+    return 'roller'; // interior
+  }
+  if (beamType === 'pin-roller'){
+    if (supportIndex === 0) return 'pin';
+    return 'roller';
+  }
+  if (beamType === 'roller-pin'){
+    if (supportIndex === 0) return 'roller';
+    if (isLast) return 'pin';
+    return 'roller';
+  }
+  if (beamType === 'pin-hinge'){
+    if (supportIndex === 0) return 'pin';
+    if (isLast) return 'hinge';
+    return 'roller';
+  }
+  if (beamType === 'hinge-roller'){
+    if (supportIndex === 0) return 'hinge';
+    if (isLast) return 'roller';
+    return 'roller';
+  }
+  if (beamType === 'roller-hinge'){
+    if (supportIndex === 0) return 'roller';
+    if (isLast) return 'hinge';
+    return 'roller';
   }
   if (beamType === 'overhanging'){
-    // The first/last NODE here is the first/last REAL prop (pin or roller). Physical
-    // overhang segments beyond these nodes are free tips, modeled as extra unsupported
-    // length added on top via STATE.leftOverhang / STATE.rightOverhang (handled in
-    // getSupportPositions for geometry, and reduced to equivalent joint loads in
-    // solveSlopeDeflection for the indeterminate multi-span case). The support NODES
-    // themselves are pin/roller props, not 'free' — the overhang is the cantilevered
-    // length beyond them, not the node.
     if (supportIndex === 0) return 'pin';
     return 'roller';
   }
@@ -1096,14 +1195,19 @@ function renderSpanInputs(){
   container.innerHTML = '';
   const n = Math.max(STATE.numSpans, 1);
   const minRequired = minSpansForBeamType(STATE.beamType);
+  const isOverhang = STATE.beamType === 'overhanging';
 
   for (let i = 0; i < n; i++){
     const prev = prevLengths[i];
     const row = document.createElement('div');
     row.className = 'field-row span-block-row';
     const canRemove = n > minRequired;
+    // For overhanging beam, clarify that this is the span between supports, not total beam length
+    const spanLabel = isOverhang
+      ? (n>1 ? `Span ${i+1} Length (${spanNodeLabel(i)}–${spanNodeLabel(i+1)}, between supports)` : `Span Length (${spanNodeLabel(0)}–${spanNodeLabel(1)}, between supports)`)
+      : (n>1 ? `Span ${i+1} Length (${spanNodeLabel(i)}–${spanNodeLabel(i+1)})` : 'Beam Length');
     row.innerHTML = `
-      <label class="field-label">${n>1 ? `Span ${i+1} Length (${spanNodeLabel(i)}–${spanNodeLabel(i+1)})` : 'Beam Length'}</label>
+      <label class="field-label">${spanLabel}</label>
       <div class="input-with-unit">
         <input type="number" class="num-input span-len-input" data-span="${i}" value="${prev ? prev.value : 4}" step="any" min="0.0001" />
         <select class="unit-select span-len-unit" data-span="${i}"></select>
@@ -1202,12 +1306,17 @@ function updateSupportHint(){
   const type = STATE.beamType;
   if (n <= 1){
     const msgs = {
-      'simply-supported':'Pin + roller end supports. Add an intermediate support to make this a propped/continuous condition.',
+      'simply-supported':'Pin + Pin end supports (both ends are pin supports).',
+      'pin-roller':'Pin support at A, Roller support at B.',
+      'roller-pin':'Roller support at A, Pin support at B.',
       'cantilever':'Fixed at A, free tip at the far end. Add a support to prop the free end.',
       'fixed':'Fixed at both ends.',
       'overhanging':'Pin + roller with overhang(s) beyond the supports.',
       'propped-cantilever':'Fixed at A, roller prop at B.',
-      'continuous':'Add at least one more support to form a continuous beam.'
+      'continuous':'Add at least one more support to form a continuous beam.',
+      'pin-hinge':'Pin support at A, Hinge support at B.',
+      'hinge-roller':'Hinge support at A, Roller support at B.',
+      'roller-hinge':'Roller support at A, Hinge support at B.'
     };
     hint.textContent = msgs[type] || '';
   } else {
@@ -1230,6 +1339,7 @@ function syncSpanLengthsFromInputs(){
   });
   renderEISpanInputs();
   renderLoadPositionConstraints();
+  updateOverhangGeometrySummary();
   rerenderBeamPreviewIfIdle();
 }
 
@@ -1246,7 +1356,28 @@ function syncOverhangs(){
   STATE.leftOverhang = toBase(lv, lu, UNITS.length);
   STATE.rightOverhang = toBase(rv, ru, UNITS.length);
   renderLoadPositionConstraints();
+  updateOverhangGeometrySummary();
   rerenderBeamPreviewIfIdle();
+}
+
+function updateOverhangGeometrySummary(){
+  const el = document.getElementById('overhangGeometrySummary');
+  if (!el) return;
+  if (STATE.beamType !== 'overhanging'){ el.style.display='none'; return; }
+  const L = STATE.leftOverhang;
+  const span = STATE.spanLengths.reduce((a,b)=>a+b,0);
+  const R = STATE.rightOverhang;
+  const total = L + span + R;
+  const supports = getSupportPositions();
+  const suppStr = supports.map((s,i)=>`${spanNodeLabel(i)} @ x=${fmt(s,3)} m`).join(', ');
+  el.style.display = '';
+  el.innerHTML = `
+    <strong style="color:var(--accent-cyan);">Beam Geometry:</strong>
+    Left overhang ${fmt(L,3)} m + Span ${fmt(span,3)} m + Right overhang ${fmt(R,3)} m
+    = <strong>Total ${fmt(total,3)} m</strong><br>
+    <span style="color:var(--accent-amber);">Supports: ${suppStr}</span><br>
+    <em>Enter load positions as distance from the left end (x = 0).</em>
+  `;
 }
 
 /* ============================================================
@@ -1255,20 +1386,44 @@ function syncOverhangs(){
 function renderEISpanInputs(){
   const n = Math.max(STATE.numSpans, 1);
 
+  // Capture whatever the user has already entered (per span index) so rebuilding
+  // these rows (triggered e.g. on every span-length edit) does NOT clobber values
+  // the user already typed — including an intentional 0.
+  const prevEI = [];
+  document.querySelectorAll('.ei-direct-input').forEach(inp=>{
+    const idx = parseInt(inp.dataset.span, 10);
+    const unitSel = document.querySelector(`.ei-direct-unit[data-span="${idx}"]`);
+    prevEI[idx] = { value: inp.value, unit: unitSel ? unitSel.value : 'kN·m²' };
+  });
+  const prevE = [];
+  document.querySelectorAll('.e-input').forEach(inp=>{
+    const idx = parseInt(inp.dataset.span, 10);
+    const unitSel = document.querySelector(`.e-unit[data-span="${idx}"]`);
+    prevE[idx] = { value: inp.value, unit: unitSel ? unitSel.value : 'GPa' };
+  });
+  const prevI = [];
+  document.querySelectorAll('.i-input').forEach(inp=>{
+    const idx = parseInt(inp.dataset.span, 10);
+    const unitSel = document.querySelector(`.i-unit[data-span="${idx}"]`);
+    prevI[idx] = { value: inp.value, unit: unitSel ? unitSel.value : 'cm⁴' };
+  });
+
   const directContainer = document.getElementById('eiSpanInputs');
   directContainer.innerHTML = '';
   for (let i = 0; i < n; i++){
     const row = document.createElement('div');
     row.style.marginBottom = '10px';
+    const keep = prevEI[i];
+    const initVal = keep ? keep.value : '200000';
     row.innerHTML = `
       <label class="field-label">${n>1?`Span ${i+1} EI`:'EI'}</label>
       <div class="input-with-unit">
-        <input type="number" class="num-input ei-direct-input" data-span="${i}" value="50000" step="any" />
+        <input type="number" class="num-input ei-direct-input" data-span="${i}" value="${initVal}" step="any" />
         <select class="unit-select ei-direct-unit" data-span="${i}"></select>
       </div>
     `;
     directContainer.appendChild(row);
-    populateUnitSelect(row.querySelector('.ei-direct-unit'), EI_UNITS, 'kN·m²');
+    populateUnitSelect(row.querySelector('.ei-direct-unit'), EI_UNITS, keep ? keep.unit : 'kN·m²');
   }
 
   const eContainer = document.getElementById('eSpanInputs');
@@ -1276,29 +1431,33 @@ function renderEISpanInputs(){
   const iContainer = document.getElementById('iSpanInputs');
   iContainer.innerHTML = '';
   for (let i = 0; i < n; i++){
+    const keepE = prevE[i];
+    const initE = keepE ? keepE.value : '200';
     const erow = document.createElement('div');
     erow.style.marginBottom = '10px';
     erow.innerHTML = `
       <label class="field-label">${n>1?`Span ${i+1} E`:"Young's Modulus E"}</label>
       <div class="input-with-unit">
-        <input type="number" class="num-input e-input" data-span="${i}" value="200" step="any" />
+        <input type="number" class="num-input e-input" data-span="${i}" value="${initE}" step="any" />
         <select class="unit-select e-unit" data-span="${i}"></select>
       </div>
     `;
     eContainer.appendChild(erow);
-    populateUnitSelect(erow.querySelector('.e-unit'), E_UNITS, 'GPa');
+    populateUnitSelect(erow.querySelector('.e-unit'), E_UNITS, keepE ? keepE.unit : 'GPa');
 
+    const keepI = prevI[i];
+    const initI = keepI ? keepI.value : '8000';
     const irow = document.createElement('div');
     irow.style.marginBottom = '10px';
     irow.innerHTML = `
       <label class="field-label">${n>1?`Span ${i+1} I`:'Moment of Inertia I'}</label>
       <div class="input-with-unit">
-        <input type="number" class="num-input i-input" data-span="${i}" value="8000" step="any" />
+        <input type="number" class="num-input i-input" data-span="${i}" value="${initI}" step="any" />
         <select class="unit-select i-unit" data-span="${i}"></select>
       </div>
     `;
     iContainer.appendChild(irow);
-    populateUnitSelect(irow.querySelector('.i-unit'), I_UNITS, 'cm⁴');
+    populateUnitSelect(irow.querySelector('.i-unit'), I_UNITS, keepI ? keepI.unit : 'cm⁴');
   }
 
   directContainer.querySelectorAll('input,select').forEach(el=>{
@@ -1315,23 +1474,22 @@ function renderEISpanInputs(){
 }
 
 function syncEI(){
-  // Hard lower bound for EI (N·m²). Values above zero but below this are almost certainly
-  // either a typo or an attempt to model a plastic-hinge/zero-stiffness condition by brute
-  // force — the trapezoidal double-integration scheme used for slope/deflection has no
-  // internal step-size adaptation and produces unbounded deflection spikes as EI→0.
-  // Clamping (rather than silently substituting the unrelated 50000 default) keeps the
-  // user's intent — "this span is very flexible" — while keeping the numerics finite.
-  const EI_MIN = 1.0;
   const n = Math.max(STATE.numSpans, 1);
   STATE.EI = [];
+  STATE.eiIsZero = false;
   if (STATE.eiMode === 'direct'){
     for (let i = 0; i < n; i++){
       const inp = document.querySelector(`.ei-direct-input[data-span="${i}"]`);
       const unitSel = document.querySelector(`.ei-direct-unit[data-span="${i}"]`);
-      if (!inp) { STATE.EI.push(50000); continue; }
-      const val = parseFloat(inp.value) || 0;
-      const eiBase = toBase(val, unitSel.value, UNITS.EI);
-      STATE.EI.push(eiBase > 0 ? Math.max(eiBase, EI_MIN) : 50000); // guard against zero/blank EI (would divide by zero downstream) and clamp near-zero EI
+      if (!inp) { STATE.EI.push(1e8); continue; }
+      const val = parseFloat(inp.value);
+      if (isNaN(val) || val === 0) {
+        STATE.EI.push(0);
+        STATE.eiIsZero = true;
+      } else {
+        const eiBase = toBase(Math.abs(val), unitSel.value, UNITS.EI);
+        STATE.EI.push(Math.max(eiBase, 1.0));
+      }
     }
   } else {
     for (let i = 0; i < n; i++){
@@ -1339,11 +1497,16 @@ function syncEI(){
       const eunit = document.querySelector(`.e-unit[data-span="${i}"]`);
       const iinp = document.querySelector(`.i-input[data-span="${i}"]`);
       const iunit = document.querySelector(`.i-unit[data-span="${i}"]`);
-      if (!einp || !iinp){ STATE.EI.push(50000); continue; }
+      if (!einp || !iinp){ STATE.EI.push(1e8); continue; }
       const Eval = toBase(parseFloat(einp.value)||0, eunit.value, UNITS.E);
       const Ival = toBase(parseFloat(iinp.value)||0, iunit.value, UNITS.I);
       const eiBase = Eval * Ival;
-      STATE.EI.push(eiBase > 0 ? Math.max(eiBase, EI_MIN) : 50000); // guard against zero/blank E or I and clamp near-zero EI
+      if (eiBase === 0) {
+        STATE.EI.push(0);
+        STATE.eiIsZero = true;
+      } else {
+        STATE.EI.push(Math.max(eiBase, 1.0));
+      }
     }
   }
   rerenderBeamPreviewIfIdle();
@@ -1567,21 +1730,27 @@ function renderLoadPositionConstraints(){
   // label whenever beam geometry changes — update label text only, never rebuild inputs
   // (rebuilding would wipe whatever the user has already typed).
   const totalLen = fmt(getTotalLength(),3);
+  // For overhanging beams, also show where the supports land so users enter correct positions
+  let extraHint = '';
+  if (STATE.beamType === 'overhanging'){
+    const sups = getSupportPositions();
+    extraHint = ' | Supports: ' + sups.map((s,i)=>`${spanNodeLabel(i)}=x${fmt(s,2)}m`).join(', ');
+  }
   document.querySelectorAll('#loadsContainer .ld-position').forEach(inp=>{
     const label = inp.closest('.field-row')?.querySelector('.field-label');
-    if (label) label.textContent = `Position (from left, total ${totalLen} m)`;
+    if (label) label.textContent = `Position from left end (total ${totalLen} m${extraHint})`;
   });
   document.querySelectorAll('#loadsContainer .ld-start').forEach(inp=>{
     const label = inp.closest('.field-row')?.querySelector('.field-label');
-    if (label) label.textContent = `Start Position (total ${totalLen} m)`;
+    if (label) label.textContent = `Start Position from left end (total ${totalLen} m${extraHint})`;
   });
   document.querySelectorAll('#loadsContainer .ld-end').forEach(inp=>{
     const label = inp.closest('.field-row')?.querySelector('.field-label');
-    if (label) label.textContent = `End Position (total ${totalLen} m)`;
+    if (label) label.textContent = `End Position from left end (total ${totalLen} m)`;
   });
   document.querySelectorAll('#momentsContainer .mm-position').forEach(inp=>{
     const label = inp.closest('.field-row')?.querySelector('.field-label');
-    if (label) label.textContent = `Position (from left, total ${totalLen} m)`;
+    if (label) label.textContent = `Position from left end (total ${totalLen} m${extraHint})`;
   });
 }
 
@@ -1797,7 +1966,7 @@ function solveDeterminateReactions(){
     };
   }
 
-  // simply-supported / overhanging: two reactions, at supports[0] and supports[last]
+  // simply-supported / overhanging / pin-roller / roller-pin / pin-hinge / hinge-roller / roller-hinge: two reactions, at supports[0] and supports[last]
   const xA = supports[0];
   const xB = supports[supports.length-1];
   const span = xB - xA;
@@ -2366,9 +2535,8 @@ function gaussianSolve(Ain, bin){
 function isIndeterminate(beamType, numSpans){
   // inherently indeterminate base types
   if (beamType === 'fixed' || beamType === 'propped-cantilever' || beamType === 'continuous') return true;
-  // simply-supported / overhanging / cantilever become indeterminate the moment
-  // an extra intermediate support (prop) is added, i.e. more than 1 span
-  if ((beamType === 'simply-supported' || beamType === 'overhanging' || beamType === 'cantilever') && numSpans > 1) return true;
+  // simply-supported / overhanging / cantilever / new types become indeterminate with extra intermediate supports
+  if (numSpans > 1) return true;
   return false;
 }
 
@@ -2424,8 +2592,18 @@ function runFullAnalysis(){
   let reactions, sdResult = null;
 
   if (isIndeterminate(beamType, STATE.numSpans)){
-    sdResult = solveSlopeDeflection();
-    reactions = sdResult.reactions;
+    // If EI=0, for indeterminate beams we cannot solve properly; treat slope/deflection as zero
+    if (STATE.eiIsZero) {
+      // Use a small EI for reaction purposes, but zero out slope/deflection later
+      const savedEI = STATE.EI.slice();
+      STATE.EI = STATE.EI.map(v => v === 0 ? 1e8 : v);
+      sdResult = solveSlopeDeflection();
+      reactions = sdResult.reactions;
+      STATE.EI = savedEI;
+    } else {
+      sdResult = solveSlopeDeflection();
+      reactions = sdResult.reactions;
+    }
   } else {
     const det = solveDeterminateReactions();
     reactions = det.reactions;
@@ -2463,10 +2641,15 @@ function runFullAnalysis(){
     return STATE.EI[STATE.EI.length-1];
   }
 
-  // slope and deflection by numerical integration (trapezoidal, fine grid) of M/EI, then M/EI again,
-  // then apply boundary conditions per span (continuity automatically satisfied since we integrate continuously
-  // and add per-span integration constants solved from compatibility — implemented via global BC solve below).
+  // If EI is zero, slope and deflection are zero (rigid beam assumption)
+  let slope, defl;
+  const supports = getSupportPositions();
   const n = xs.length;
+  if (STATE.eiIsZero) {
+    slope = new Array(n).fill(0);
+    defl  = new Array(n).fill(0);
+  } else {
+  // slope and deflection by numerical integration (trapezoidal, fine grid) of M/EI, then M/EI again,
   const curvature = xs.map((x,i)=> M[i] / EIatX(x));
 
   // integrate curvature -> raw slope (no constant), and raw slope -> raw deflection (no constants)
@@ -2481,39 +2664,27 @@ function runFullAnalysis(){
     rawDefl[i] = rawDefl[i-1] + 0.5*(rawSlope[i]+rawSlope[i-1])*dx;
   }
 
-  // Now apply true boundary/compatibility conditions: deflection = settlement at every support (& slope=0 at fixed),
-  // free deflection = rawDefl + C1*x + C2 (globally, since EI(d2y/dx2)=M is integrated as one continuous beam
-  // when supports impose y=given at specific x's, plus slope=0 at fixed supports as extra constraints handled by solving for true
-  // theta at those fixed ends via secondary correction). For determinate/simple cases two conditions (y=0 at two supports) fix C1,C2.
-  // For beams with more supports than 2 (continuous), compatibility was already enforced via slope-deflection upstream, so the
-  // M(x) used here already reflects the true redundant moments; we still need 2 global constants from any two zero-deflection points.
-
-  const supports = getSupportPositions();
+  // Now apply true boundary/compatibility conditions
   const settlementArr = supports.map((_,i)=> STATE.settlements[i] || 0);
 
   let C1=0, C2=0;
   if (beamType === 'cantilever'){
-    // fixed at supports[0]: slope=0 and deflection=0 there
     const idx = nearestIndex(xs, supports[0]);
     C1 = -rawSlope[idx];
     C2 = -(rawDefl[idx] + C1*xs[idx]);
   } else {
-    // pick first and last support as the two zero/settlement conditions
     const xA = supports[0], xB = supports[supports.length-1];
     const yA_target = settlementArr[0];
     const yB_target = settlementArr[settlementArr.length-1];
     const iA = nearestIndex(xs, xA), iB = nearestIndex(xs, xB);
-    // rawDefl(iA)+C1*xA+C2 = yA_target ; rawDefl(iB)+C1*xB+C2=yB_target
     const denom = (xB-xA);
     C1 = denom!==0 ? ( (yB_target-yA_target) - (rawDefl[iB]-rawDefl[iA]) ) / denom : 0;
     C2 = yA_target - rawDefl[iA] - C1*xA;
   }
 
-  const slope = rawSlope.map(s=> s + C1);
-  const defl = rawDefl.map((d,i)=> d + C1*xs[i] + C2);
-
-  // For fixed beam / propped cantilever with a fixed end at an INTERMEDIATE-from-list support not index0,
-  // (not applicable here since fixed end is always index0 in our topology), skip extra handling.
+  slope = rawSlope.map(s=> s + C1);
+  defl = rawDefl.map((d,i)=> d + C1*xs[i] + C2);
+  } // end else (EI != 0)
 
   // joint rotations (theta) at supports — from slope-deflection result if available, else from numeric slope
   let jointRotations = [];
@@ -2580,7 +2751,7 @@ function nearestIndex(xs, target){
 /* ============================================================
    SVG DIAGRAM RENDERING
    ============================================================ */
-const SVG_W = 1000, SVG_H = 500;
+const SVG_W = 1000, SVG_H = 540;
 const SVG_MARGIN = { left:60, right:40, top:50, bottom:60 };
 
 function svgEl(tag, attrs){
@@ -2616,14 +2787,53 @@ function renderAllDiagrams(){
   renderBeamDiagram(clearSVG('diagramSVG-beam'), result);
   renderFieldDiagram(clearSVG('diagramSVG-sfd'), result, result.V, 'Shear Force (V)', 'kN', UNITS.force.kN, result.zeroShear, result.Vmax, result.Vmin);
   renderFieldDiagram(clearSVG('diagramSVG-bmd'), result, result.M, 'Bending Moment (M)', 'kN·m', UNITS.moment['kN·m'], result.contraflexure, result.Mmax, result.Mmin);
-  renderFieldDiagram(clearSVG('diagramSVG-slope'), result, result.slope, 'Slope (θ)', 'rad', 1, [], result.Smax, result.Smin);
-  renderFieldDiagram(clearSVG('diagramSVG-deflection'), result, result.defl, 'Deflection (y)', 'mm', 0.001, [], result.Dmax, result.Dmin);
+
+  if (STATE.eiIsZero){
+    renderEIZeroMessage('diagramSVG-slope', 'Slope (θ) — EI = 0, slope = 0 everywhere');
+    renderEIZeroMessage('diagramSVG-deflection', 'Deflection (y) — EI = 0, deflection = 0 everywhere');
+  } else {
+    renderFieldDiagram(clearSVG('diagramSVG-slope'), result, result.slope, 'Slope (θ)', 'rad', 1, [], result.Smax, result.Smin);
+    renderFieldDiagram(clearSVG('diagramSVG-deflection'), result, result.defl, 'Deflection (y)', 'mm', 0.001, [], result.Dmax, result.Dmin);
+  }
+}
+
+function renderEIZeroMessage(id, msg){
+  const svg = clearSVG(id);
+  const t = svgEl('text', { x:500, y:250, 'text-anchor':'middle', class:'label-text', fill:'var(--accent-amber)' });
+  t.textContent = '⚠ ' + msg;
+  svg.appendChild(t);
 }
 
 function renderBeamDiagram(svg, result){
   const totalLen = result.totalLen;
   const yBeam = 230;
   svg.appendChild(svgEl('line', { x1:xScale(0,totalLen), x2:xScale(totalLen,totalLen), y1:yBeam, y2:yBeam, class:'beam-line' }));
+
+  // x-position ruler: draw ticks and labels at nice intervals so users can read positions off the diagram
+  (function drawRuler(){
+    const nTicks = 10;
+    const rawStep = totalLen / nTicks;
+    // round step to a nice number
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const niceSteps = [1,2,2.5,5,10].map(f=>f*magnitude);
+    const step = niceSteps.find(s=>s>=rawStep) || magnitude*10;
+    const yRuler = yBeam + 165;
+    // ruler baseline
+    svg.appendChild(svgEl('line',{x1:xScale(0,totalLen),x2:xScale(totalLen,totalLen),y1:yRuler,y2:yRuler,stroke:'rgba(255,255,255,0.12)','stroke-width':1}));
+    for (let xv=0; xv<=totalLen+1e-9; xv=Math.round((xv+step)*1e9)/1e9){
+      if (xv > totalLen + step*0.1) break;
+      const px = xScale(Math.min(xv,totalLen), totalLen);
+      svg.appendChild(svgEl('line',{x1:px,x2:px,y1:yRuler-4,y2:yRuler+4,stroke:'rgba(255,255,255,0.2)','stroke-width':1}));
+      const t = svgEl('text',{x:px,y:yRuler+15,'text-anchor':'middle',class:'label-text',style:'font-size:9.5px;fill:var(--text-3);'});
+      t.textContent = fmt(Math.min(xv,totalLen),2)+'m';
+      svg.appendChild(t);
+    }
+    // also mark support positions with a brighter tick
+    result.supports.forEach((sx)=>{
+      const px = xScale(sx,totalLen);
+      svg.appendChild(svgEl('line',{x1:px,x2:px,y1:yRuler-6,y2:yRuler+6,stroke:'var(--accent-cyan)','stroke-width':1.5}));
+    });
+  })();
 
   // supports
   const supports = result.supports;
@@ -2639,6 +2849,11 @@ function renderBeamDiagram(svg, result){
     } else if (type === 'pin'){
       svg.appendChild(svgEl('polygon', { points:`${cx-14},${yBeam+22} ${cx+14},${yBeam+22} ${cx},${yBeam}`, class:'support-tri' }));
       hatchGround(svg, cx, yBeam+22);
+    } else if (type === 'hinge'){
+      // Hinge: triangle with a circle at the apex (internal hinge symbol)
+      svg.appendChild(svgEl('polygon', { points:`${cx-14},${yBeam+22} ${cx+14},${yBeam+22} ${cx},${yBeam}`, class:'support-tri' }));
+      svg.appendChild(svgEl('circle', { cx:cx, cy:yBeam, r:4, fill:'var(--bg-0)', stroke:'var(--text-0)', 'stroke-width':1.5 }));
+      hatchGround(svg, cx, yBeam+22);
     } else if (type === 'roller'){
       svg.appendChild(svgEl('polygon', { points:`${cx-14},${yBeam+18} ${cx+14},${yBeam+18} ${cx},${yBeam}`, class:'support-tri' }));
       svg.appendChild(svgEl('circle', { cx:cx-7, cy:yBeam+23, r:4, class:'support-tri' }));
@@ -2648,12 +2863,26 @@ function renderBeamDiagram(svg, result){
     svg.appendChild(svgEl('text', { x:cx, y:yBeam+48, 'text-anchor':'middle', class:'label-text' })).textContent = spanNodeLabel(i);
   });
 
-  // point loads (arrows)
+  // Helpers: draw arrows as line + polygon — no SVG markers, avoids all orient/rotation bugs.
+  // drawDownArrow: orange load arrow pointing DOWN, tip at yTip.
+  function drawDownArrow(cx, yTop, yTip, color, sw){
+    const aw=10, ah=10;
+    svg.appendChild(svgEl('line',{x1:cx,y1:yTop,x2:cx,y2:yTip-ah,stroke:color,'stroke-width':sw}));
+    svg.appendChild(svgEl('polygon',{points:`${cx-aw/2},${yTip-ah} ${cx+aw/2},${yTip-ah} ${cx},${yTip}`,fill:color}));
+  }
+  // drawUpArrow: cyan reaction arrow pointing UP, tip at yTip.
+  function drawUpArrow(cx, yBottom, yTip, color, sw){
+    const aw=10, ah=10;
+    svg.appendChild(svgEl('line',{x1:cx,y1:yBottom,x2:cx,y2:yTip+ah,stroke:color,'stroke-width':sw}));
+    svg.appendChild(svgEl('polygon',{points:`${cx-aw/2},${yTip+ah} ${cx+aw/2},${yTip+ah} ${cx},${yTip}`,fill:color}));
+  }
+
+  // point loads — orange arrow pointing DOWN, tip touches beam top surface
   STATE.loads.forEach(ld=>{
     if (ld.type === 'point'){
       const cx = xScale(ld.position, totalLen);
-      svg.appendChild(svgEl('line', { x1:cx, y1:yBeam-55, x2:cx, y2:yBeam-4, class:'load-arrow', 'marker-end':'url(#arrowhead)' }));
-      const t = svgEl('text', { x:cx, y:yBeam-62, 'text-anchor':'middle', class:'value-text' });
+      drawDownArrow(cx, yBeam-80, yBeam, 'var(--accent-amber)', 2.5);
+      const t = svgEl('text', { x:cx, y:yBeam-86, 'text-anchor':'middle', class:'value-text' });
       t.textContent = `${fmt(ld.rawMag)} ${ld.rawUnit}`;
       svg.appendChild(t);
     } else {
@@ -2664,12 +2893,12 @@ function renderBeamDiagram(svg, result){
       svg.appendChild(svgEl('polygon', { points:`${x1},${top1} ${x2},${top2} ${x2},${yBeam-4} ${x1},${yBeam-4}`, class:'udl-fill' }));
       const arrowCount = Math.max(3, Math.round((x2-x1)/30));
       for (let k=0;k<=arrowCount;k++){
-        const t = k/arrowCount;
-        const ax = x1 + (x2-x1)*t;
-        const ay = top1 + (top2-top1)*t;
-        svg.appendChild(svgEl('line', { x1:ax, y1:ay, x2:ax, y2:yBeam-5, class:'load-arrow', 'stroke-width':1.5, 'marker-end':'url(#arrowheadsmall)' }));
+        const tt = k/arrowCount;
+        const ax = x1 + (x2-x1)*tt;
+        const ay = top1 + (top2-top1)*tt;
+        drawDownArrow(ax, ay, yBeam, 'var(--accent-amber)', 1.2);
       }
-      const label = ld.type==='uvl'||ld.type==='trapezoidal' ? `${fmt(ld.rawW1)}–${fmt(ld.rawW2)} ${ld.rawUnit}` : `${fmt(ld.rawMag)} ${ld.rawUnit}`;
+      const label = ld.type==='uvl'||ld.type==='trapezoidal' ? `${fmt(ld.rawW1)}-${fmt(ld.rawW2)} ${ld.rawUnit}` : `${fmt(ld.rawMag)} ${ld.rawUnit}`;
       const lt = svgEl('text', { x:(x1+x2)/2, y:Math.min(top1,top2)-8, 'text-anchor':'middle', class:'value-text' });
       lt.textContent = label;
       svg.appendChild(lt);
@@ -2690,15 +2919,23 @@ function renderBeamDiagram(svg, result){
     svg.appendChild(lt);
   });
 
-  // reactions (below beam)
+  // reactions — cyan arrow pointing UP (positive) or DOWN (negative), drawn below beam.
+  // Uses drawUpArrow/drawDownArrow helpers — no SVG markers, pixel-perfect placement.
   result.reactions.forEach(re=>{
     if (re.kind!=='force') return;
     const cx = xScale(re.position, totalLen);
-    const dir = re.value>=0 ? 1 : -1;
-    svg.appendChild(svgEl('line', { x1:cx, y1:yBeam+60+ (dir>0?30:0), x2:cx, y2:yBeam+60+(dir>0?0:30), class:'load-arrow', stroke:'var(--accent-cyan)', 'marker-end':'url(#arrowheadcyan)' }));
-    const lt = svgEl('text', { x:cx, y:yBeam+102, 'text-anchor':'middle', class:'value-text' });
-    lt.setAttribute('fill','var(--accent-cyan)');
-    lt.textContent = `${fmt(fromBase(Math.abs(re.value),'kN',UNITS.force))} kN`;
+    const isPositive = re.value >= 0;
+    const yTip  = yBeam + 2;  // arrowhead tip just touches beam underside
+    const yTail = yBeam + 90; // tail end of arrow
+    if (isPositive){
+      drawUpArrow(cx, yTail, yTip, 'var(--accent-cyan)', 2.5);
+    } else {
+      drawDownArrow(cx, yTip, yTail, 'var(--accent-cyan)', 2.5);
+    }
+    const lt = svgEl('text', {
+      x:cx, y:yTail+16, 'text-anchor':'middle', class:'value-text', fill:'var(--accent-cyan)'
+    });
+    lt.textContent = `${isPositive?'\u2191':'\u2193'} ${fmt(fromBase(Math.abs(re.value),'kN',UNITS.force))} kN`;
     svg.appendChild(lt);
   });
 
@@ -2714,15 +2951,36 @@ function hatchGround(svg, cx, y){
 
 function addArrowMarkers(svg){
   const defs = svgEl('defs', {});
-  const mk = (id, color) => {
-    const m = svgEl('marker', { id, markerWidth:8, markerHeight:8, refX:4, refY:7, orient:'auto' });
-    m.appendChild(svgEl('path', { d:'M0,0 L8,0 L4,8 Z', fill:color }));
+
+  // All markers use markerUnits='userSpaceOnUse' so sizes are in SVG px (not scaled by stroke-width).
+  // Load arrow: points DOWN — tip at bottom (y=10), base at top (y=0).
+  // refY=10 anchors the tip to the line's endpoint so arrowhead lands exactly where line ends.
+  const mkDown = (id, color, w, h) => {
+    w = w || 10; h = h || 10;
+    const m = svgEl('marker', { id, markerWidth:w, markerHeight:h, refX:w/2, refY:h, orient:'auto', markerUnits:'userSpaceOnUse' });
+    m.appendChild(svgEl('path', { d:`M0,0 L${w},0 L${w/2},${h} Z`, fill:color }));
     return m;
   };
-  defs.appendChild(mk('arrowhead','var(--accent-amber)'));
-  defs.appendChild(mk('arrowheadsmall','var(--accent-amber)'));
-  defs.appendChild(mk('arrowheadcyan','var(--accent-cyan)'));
-  defs.appendChild(mk('arrowheadmoment','var(--accent-violet)'));
+  // Reaction arrow: points UP — tip at top (y=0), base at bottom (y=10).
+  // refY=0 anchors the tip to the line's endpoint so arrowhead lands at the top (toward beam).
+  const mkUp = (id, color, w, h) => {
+    w = w || 10; h = h || 10;
+    const m = svgEl('marker', { id, markerWidth:w, markerHeight:h, refX:w/2, refY:0, orient:'auto', markerUnits:'userSpaceOnUse' });
+    m.appendChild(svgEl('path', { d:`M0,${h} L${w},${h} L${w/2},0 Z`, fill:color }));
+    return m;
+  };
+  // Moment arc: tangential arrowhead
+  const mkMoment = (id, color) => {
+    const m = svgEl('marker', { id, markerWidth:8, markerHeight:8, refX:0, refY:4, orient:'auto' });
+    m.appendChild(svgEl('path', { d:'M0,0 L8,4 L0,8 Z', fill:color }));
+    return m;
+  };
+
+  defs.appendChild(mkDown('arrowhead',         'var(--accent-amber)', 10, 10));
+  defs.appendChild(mkDown('arrowheadsmall',    'var(--accent-amber)',  8,  8));
+  defs.appendChild(mkUp  ('arrowheadcyan',     'var(--accent-cyan)',  10, 10));
+  defs.appendChild(mkDown('arrowheadcyan-down','var(--accent-cyan)',  10, 10));
+  defs.appendChild(mkMoment('arrowheadmoment', 'var(--accent-violet)'));
   svg.insertBefore(defs, svg.firstChild);
 }
 
@@ -2963,6 +3221,267 @@ function renderTablePanel(result){
   el.appendChild(table);
 }
 
+function renderDetailedPanel(result){
+  const el = document.getElementById('detailedOutput');
+  const bt = STATE.beamType;
+  const totalLen = result.totalLen;
+  const supports = result.supports;
+  const reactions = result.reactions;
+  let html = '';
+
+  // --- BEAM INFO ---
+  html += `<div class="formula-block">
+    <div class="formula-title">📐 Beam Configuration</div>
+    <div class="formula-line">Beam Type: <strong>${bt}</strong></div>
+    <div class="formula-line">Total Length: L = ${fmt(totalLen,3)} m</div>
+    <div class="formula-line">Supports: ${supports.map((s,i)=>`${spanNodeLabel(i)} @ x=${fmt(s,3)} m`).join(', ')}</div>
+    ${STATE.EI.map((ei,i)=>`<div class="formula-line">EI${STATE.numSpans>1?' Span '+(i+1):''}  = ${fmt(fromBase(ei,'kN·m²',UNITS.EI),2)} kN·m² ${STATE.eiIsZero?'(⚠ EI=0: slope & deflection = 0)':''}</div>`).join('')}
+  </div>`;
+
+  // --- LOADING SUMMARY ---
+  if (STATE.loads.length > 0){
+    html += `<div class="formula-block">
+      <div class="formula-title">📦 Applied Loads Summary</div>`;
+    STATE.loads.forEach((ld,idx)=>{
+      if (ld.type==='point'){
+        const r = loadResultant(ld);
+        html += `<div class="formula-line">Load ${idx+1} [Point Load]:</div>
+        <div class="formula-line">&nbsp;&nbsp;P = ${fmt(fromBase(ld.magnitude,'kN',UNITS.force))} kN</div>
+        <div class="formula-line">&nbsp;&nbsp;Position x = ${fmt(ld.position,3)} m from left</div>`;
+      } else if (ld.type==='udl'||ld.type==='partial-udl'){
+        const r = loadResultant(ld);
+        html += `<div class="formula-line">Load ${idx+1} [UDL]:</div>
+        <div class="formula-line">&nbsp;&nbsp;w = ${fmt(fromBase(ld.intensity,'kN/m',UNITS.distForce))} kN/m  from x=${fmt(ld.start,3)} m to x=${fmt(ld.end,3)} m</div>
+        <div class="formula-line">&nbsp;&nbsp;Resultant: F = w × L = ${fmt(fromBase(ld.intensity,'kN/m',UNITS.distForce))} × ${fmt(ld.end-ld.start,3)} = ${fmt(fromBase(r.F,'kN',UNITS.force))} kN  at x=${fmt(r.x,3)} m</div>`;
+      } else if (ld.type==='uvl'||ld.type==='trapezoidal'){
+        const r = loadResultant(ld);
+        html += `<div class="formula-line">Load ${idx+1} [${ld.type==='uvl'?'Triangular UVL':'Trapezoidal'}]:</div>
+        <div class="formula-line">&nbsp;&nbsp;w₁ = ${fmt(fromBase(ld.w1,'kN/m',UNITS.distForce))} kN/m (start),  w₂ = ${fmt(fromBase(ld.w2,'kN/m',UNITS.distForce))} kN/m (end)</div>
+        <div class="formula-line">&nbsp;&nbsp;Range: x=${fmt(ld.start,3)} m to x=${fmt(ld.end,3)} m</div>
+        <div class="formula-line">&nbsp;&nbsp;Resultant: F = ½(w₁+w₂) × L = ½×(${fmt(fromBase(ld.w1,'kN/m',UNITS.distForce))}+${fmt(fromBase(ld.w2,'kN/m',UNITS.distForce))})×${fmt(ld.end-ld.start,3)} = ${fmt(fromBase(r.F,'kN',UNITS.force))} kN  at x=${fmt(r.x,3)} m</div>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  if (STATE.moments.length > 0){
+    html += `<div class="formula-block">
+      <div class="formula-title">🔄 Applied Moments Summary</div>`;
+    STATE.moments.forEach((m,idx)=>{
+      html += `<div class="formula-line">Moment ${idx+1}: M = ${fmt(fromBase(Math.abs(m.magnitude),'kN·m',UNITS.moment))} kN·m  ${m.dir==='cw'?'Clockwise (CW)':'Anticlockwise (CCW)'}  at x=${fmt(m.position,3)} m</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // --- REACTION CALCULATION ---
+  html += `<div class="formula-block">
+    <div class="formula-title">⚖️ Support Reaction Calculations</div>`;
+
+  const forcReactions = reactions.filter(r=>r.kind==='force');
+  const momReactions = reactions.filter(r=>r.kind==='moment');
+
+  if (!result.sdResult){
+    // Determinate beam: show statics derivation
+    const xA = supports[0];
+    const xB = supports[supports.length-1];
+    const span = xB - xA;
+    const allLoads = sumOfAppliedLoads();
+    const totalF = allLoads.reduce((s,r)=>s+r.F,0);
+    const sumMomAboutA = allLoads.reduce((s,r)=>s+r.F*(r.x-xA),0) + STATE.moments.reduce((s,m)=>s+m.magnitude,0);
+
+    html += `<div class="formula-line"><strong>Method: Statics (Determinate)</strong></div>`;
+
+    if (bt === 'cantilever'){
+      html += `<div class="formula-line">ΣFy = 0:</div>
+      <div class="formula-line">&nbsp;&nbsp;R_A = ΣP = ${fmt(fromBase(totalF,'kN',UNITS.force))} kN  (upward)</div>
+      <div class="formula-line">ΣM about A = 0:</div>
+      <div class="formula-line">&nbsp;&nbsp;M_A = -Σ[P × (x_load - x_A)]</div>
+      <div class="formula-line">&nbsp;&nbsp;M_A = ${fmt(fromBase(-sumMomAboutA,'kN·m',UNITS.moment))} kN·m</div>`;
+    } else {
+      html += `<div class="formula-line">Step 1: ΣM about ${spanNodeLabel(0)} = 0  →  find R_${spanNodeLabel(1)}</div>`;
+
+      // Show each load's moment contribution
+      allLoads.forEach((r,i)=>{
+        const ld = STATE.loads[i];
+        if (!ld) return;
+        const arm = r.x - xA;
+        html += `<div class="formula-line">&nbsp;&nbsp;Load ${i+1}: ${fmt(fromBase(r.F,'kN',UNITS.force))} kN × ${fmt(arm,3)} m = ${fmt(fromBase(r.F*arm,'kN·m',UNITS.moment))} kN·m</div>`;
+      });
+      STATE.moments.forEach((m,i)=>{
+        html += `<div class="formula-line">&nbsp;&nbsp;Applied Moment ${i+1}: ${fmt(fromBase(m.magnitude,'kN·m',UNITS.moment))} kN·m</div>`;
+      });
+
+      const RB = (sumMomAboutA) / span;
+      const RA = totalF - RB;
+      html += `<div class="formula-line">&nbsp;&nbsp;ΣM_A = Σ[P×arm] + ΣM_applied = ${fmt(fromBase(sumMomAboutA,'kN·m',UNITS.moment))} kN·m</div>
+      <div class="formula-line">&nbsp;&nbsp;R_${spanNodeLabel(supports.length-1)} = ΣM_A / L_AB = ${fmt(fromBase(sumMomAboutA,'kN·m',UNITS.moment))} / ${fmt(span,3)} = <strong>${fmt(fromBase(RB,'kN',UNITS.force))} kN</strong></div>
+      <div class="formula-line">Step 2: ΣFy = 0  →  R_${spanNodeLabel(0)} = ΣP − R_${spanNodeLabel(supports.length-1)}</div>
+      <div class="formula-line">&nbsp;&nbsp;R_${spanNodeLabel(0)} = ${fmt(fromBase(totalF,'kN',UNITS.force))} − ${fmt(fromBase(RB,'kN',UNITS.force))} = <strong>${fmt(fromBase(RA,'kN',UNITS.force))} kN</strong></div>`;
+    }
+  } else {
+    // Indeterminate: slope-deflection summary
+    html += `<div class="formula-line"><strong>Method: Slope-Deflection (Statically Indeterminate)</strong></div>
+    <div class="formula-line">General slope-deflection equation:</div>
+    <div class="formula-line">&nbsp;&nbsp;M_AB = FEM_AB + (2EI/L)(2θ_A + θ_B − 3Ψ)</div>
+    <div class="formula-line">&nbsp;&nbsp;M_BA = FEM_BA + (2EI/L)(2θ_B + θ_A − 3Ψ)</div>
+    <div class="formula-line">where: FEM = Fixed End Moment, θ = joint rotation, Ψ = chord rotation (Δ/L)</div>`;
+  }
+
+  reactions.forEach(re=>{
+    const unit = re.kind==='force'?'kN':'kN·m';
+    const uTbl = re.kind==='force'?UNITS.force:UNITS.moment;
+    html += `<div class="formula-line result">${re.label} = <strong>${fmt(fromBase(re.value,unit,uTbl))} ${unit}</strong>  (@ x=${fmt(re.position,3)} m)</div>`;
+  });
+
+  // Verification
+  const sumR = forcReactions.reduce((s,r)=>s+r.value,0);
+  const sumP = totalAppliedForce();
+  html += `<div class="formula-line">✔ Check ΣFy: ΣReactions = ${fmt(fromBase(sumR,'kN',UNITS.force))} kN,  ΣLoads = ${fmt(fromBase(sumP,'kN',UNITS.force))} kN  → ${Math.abs(sumR-sumP)<Math.max(1,Math.abs(sumP))*0.01?'✓ OK':'⚠ Mismatch'}</div>`;
+  html += `</div>`;
+
+  // --- SFD CALCULATION ---
+  html += `<div class="formula-block">
+    <div class="formula-title">📊 Shear Force Diagram (SFD) — Method of Sections</div>
+    <div class="formula-line">Formula: V(x) = ΣFy (all forces to the LEFT of section x)</div>
+    <div class="formula-line">Sign Convention: Upward forces → +ve shear; Downward forces → −ve shear</div>
+    <div class="formula-line">Relationship: dV/dx = −w(x)</div>`;
+
+  // Sample shear at key positions
+  const keyXs = [supports[0]];
+  STATE.loads.forEach(ld=>{
+    if (ld.type==='point') keyXs.push(ld.position);
+    else { keyXs.push(ld.start); keyXs.push(ld.end); }
+  });
+  keyXs.push(supports[supports.length-1]);
+  const uniqueKeyXs = [...new Set(keyXs.map(x=>Math.round(x*1000)/1000))].sort((a,b)=>a-b);
+
+  uniqueKeyXs.forEach(x=>{
+    const V = shearAt(x+1e-7, reactions);
+    html += `<div class="formula-line">&nbsp;&nbsp;V(${fmt(x,3)} m) = ${fmt(fromBase(V,'kN',UNITS.force))} kN</div>`;
+  });
+
+  html += `<div class="formula-line result">Max Shear = ${fmt(fromBase(result.Vmax.value,'kN',UNITS.force))} kN  @ x=${fmt(result.Vmax.position,3)} m</div>
+  <div class="formula-line result">Min Shear = ${fmt(fromBase(result.Vmin.value,'kN',UNITS.force))} kN  @ x=${fmt(result.Vmin.position,3)} m</div>`;
+
+  if (result.zeroShear.length){
+    html += `<div class="formula-line">Zero Shear (V=0) at: x = ${result.zeroShear.map(z=>fmt(z,3)).join(', ')} m  → location(s) of max bending moment</div>`;
+  }
+  html += `</div>`;
+
+  // --- BMD CALCULATION ---
+  html += `<div class="formula-block">
+    <div class="formula-title">📈 Bending Moment Diagram (BMD) — Method of Sections</div>
+    <div class="formula-line">Formula: M(x) = ΣM (moments of all forces to the LEFT of section x)</div>
+    <div class="formula-line">Sign Convention: Sagging (hogging at top) = +ve; Hogging = −ve</div>
+    <div class="formula-line">Relationship: dM/dx = V(x),  M(x) = ∫V(x)dx</div>
+    <div class="formula-line">Boundary conditions: M = 0 at pin/roller/free ends</div>`;
+
+  uniqueKeyXs.forEach(x=>{
+    const Mv = momentAt(x, reactions);
+    html += `<div class="formula-line">&nbsp;&nbsp;M(${fmt(x,3)} m) = ${fmt(fromBase(Mv,'kN·m',UNITS.moment))} kN·m</div>`;
+  });
+
+  html += `<div class="formula-line result">Max Moment = ${fmt(fromBase(result.Mmax.value,'kN·m',UNITS.moment))} kN·m  @ x=${fmt(result.Mmax.position,3)} m</div>
+  <div class="formula-line result">Min Moment = ${fmt(fromBase(result.Mmin.value,'kN·m',UNITS.moment))} kN·m  @ x=${fmt(result.Mmin.position,3)} m</div>`;
+
+  if (result.contraflexure.length){
+    html += `<div class="formula-line">Point(s) of Contraflexure (M=0, between supports): x = ${result.contraflexure.map(z=>fmt(z,3)).join(', ')} m</div>`;
+  }
+  html += `</div>`;
+
+  // --- SLOPE CALCULATION ---
+  if (STATE.eiIsZero){
+    html += `<div class="formula-block">
+      <div class="formula-title">📐 Slope (θ) — EI = 0</div>
+      <div class="formula-line">⚠️ EI = 0: Slope (θ) = 0 everywhere (rigid beam / no bending stiffness defined)</div>
+      <div class="formula-line">To compute slope, set a non-zero EI value in Section 02.</div>
+    </div>`;
+  } else {
+    const EIval = fromBase(STATE.EI[0],'kN·m²',UNITS.EI);
+    html += `<div class="formula-block">
+      <div class="formula-title">📐 Slope Diagram (θ) — Double Integration Method</div>
+      <div class="formula-line">Governing equation: EI(d²y/dx²) = M(x)</div>
+      <div class="formula-line">Integrating once: EI(dy/dx) = EI·θ(x) = ∫M(x)dx + C₁</div>
+      <div class="formula-line">EI = ${fmt(EIval)} kN·m²</div>
+      <div class="formula-line">C₁ is found from boundary conditions:</div>`;
+    if (bt==='cantilever'){
+      html += `<div class="formula-line">&nbsp;&nbsp;Cantilever: θ = 0 at fixed end (x = ${fmt(supports[0],3)} m)  →  C₁ = −∫M(x)dx|_{x=x_A}</div>`;
+    } else {
+      html += `<div class="formula-line">&nbsp;&nbsp;Simply supported: y = 0 at x_A and x_B  →  C₁ solved from deflection BCs</div>`;
+    }
+    html += `<div class="formula-line result">Max Slope = ${fmt(result.Smax.value,6)} rad  @ x=${fmt(result.Smax.position,3)} m</div>
+      <div class="formula-line result">Min Slope = ${fmt(result.Smin.value,6)} rad  @ x=${fmt(result.Smin.position,3)} m</div>
+    </div>`;
+  }
+
+  // --- DEFLECTION CALCULATION ---
+  if (STATE.eiIsZero){
+    html += `<div class="formula-block">
+      <div class="formula-title">⬇️ Deflection (y) — EI = 0</div>
+      <div class="formula-line">⚠️ EI = 0: Deflection (y) = 0 everywhere (rigid beam / no bending stiffness defined)</div>
+      <div class="formula-line">To compute deflection, set a non-zero EI value in Section 02.</div>
+    </div>`;
+  } else {
+    const EIval = fromBase(STATE.EI[0],'kN·m²',UNITS.EI);
+    html += `<div class="formula-block">
+      <div class="formula-title">⬇️ Deflection Diagram (y) — Double Integration Method</div>
+      <div class="formula-line">Integrating twice: EI·y(x) = ∬M(x)dx² + C₁x + C₂</div>
+      <div class="formula-line">EI = ${fmt(EIval)} kN·m²</div>
+      <div class="formula-line">Constants C₁, C₂ from boundary conditions:</div>`;
+    if (bt==='cantilever'){
+      html += `<div class="formula-line">&nbsp;&nbsp;y(x_A) = 0 and θ(x_A) = 0  (fixed end)</div>`;
+    } else {
+      html += `<div class="formula-line">&nbsp;&nbsp;y(${fmt(supports[0],3)}) = 0  and  y(${fmt(supports[supports.length-1],3)}) = 0  (pin/roller BCs)</div>`;
+    }
+    html += `<div class="formula-line">&nbsp;&nbsp;Deflection y(x) = [∬M(x)dx² + C₁x + C₂] / EI</div>
+      <div class="formula-line result">Max Deflection = ${fmt(result.Dmax.value*1000,4)} mm  @ x=${fmt(result.Dmax.position,3)} m</div>
+      <div class="formula-line result">Min Deflection = ${fmt(result.Dmin.value*1000,4)} mm  @ x=${fmt(result.Dmin.position,3)} m</div>
+    </div>`;
+  }
+
+  // --- FEM details if indeterminate ---
+  if (result.sdResult){
+    const sd = result.sdResult;
+    html += `<div class="formula-block">
+      <div class="formula-title">🔩 Fixed End Moments (FEM)</div>
+      <div class="formula-line">FEM are the moments that would develop at member ends if all joints were locked against rotation.</div>`;
+    STATE.spanLengths.forEach((L,i)=>{
+      const fem = sd.spanFEM[i];
+      const EI = STATE.EI[i];
+      html += `<div class="formula-line">Span ${spanNodeLabel(i)}–${spanNodeLabel(i+1)} (L=${fmt(L,3)} m, EI=${fmt(fromBase(EI,'kN·m²',UNITS.EI))} kN·m²):</div>
+      <div class="formula-line">&nbsp;&nbsp;FEM_${spanNodeLabel(i)}${spanNodeLabel(i+1)} = ${fmt(fromBase(fem.MAB,'kN·m',UNITS.moment))} kN·m</div>
+      <div class="formula-line">&nbsp;&nbsp;FEM_${spanNodeLabel(i+1)}${spanNodeLabel(i)} = ${fmt(fromBase(fem.MBA,'kN·m',UNITS.moment))} kN·m</div>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="formula-block">
+      <div class="formula-title">🔄 Joint Rotations (θ)</div>
+      <div class="formula-line">Solved from joint equilibrium equations: ΣM_joint = 0</div>`;
+    sd.theta.forEach((t,i)=>{
+      const EIavg = STATE.EI[Math.min(i,STATE.EI.length-1)];
+      html += `<div class="formula-line">&nbsp;&nbsp;θ_${spanNodeLabel(i)} = ${fmt(t,8)} rad</div>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="formula-block">
+      <div class="formula-title">🏗️ Member End Moments</div>
+      <div class="formula-line">Substituting θ values back into slope-deflection equations:</div>`;
+    STATE.spanLengths.forEach((L,i)=>{
+      const em = sd.endMoments[i];
+      const EI = STATE.EI[i];
+      const k = 2*EI/L;
+      const fem = sd.spanFEM[i];
+      html += `<div class="formula-line">Span ${spanNodeLabel(i)}–${spanNodeLabel(i+1)}:</div>
+      <div class="formula-line">&nbsp;&nbsp;M_${spanNodeLabel(i)}${spanNodeLabel(i+1)} = ${fmt(fromBase(fem.MAB,'kN·m',UNITS.moment))} + (2×${fmt(fromBase(EI,'kN·m²',UNITS.EI))}/${fmt(L,3)})(2×${fmt(sd.theta[i],6)} + ${fmt(sd.theta[i+1]||0,6)} − 3×${fmt(sd.psi?sd.psi[i]:0,6)})</div>
+      <div class="formula-line result">&nbsp;&nbsp;M_${spanNodeLabel(i)}${spanNodeLabel(i+1)} = ${fmt(fromBase(em.MAB,'kN·m',UNITS.moment))} kN·m</div>
+      <div class="formula-line result">&nbsp;&nbsp;M_${spanNodeLabel(i+1)}${spanNodeLabel(i)} = ${fmt(fromBase(em.MBA,'kN·m',UNITS.moment))} kN·m</div>`;
+    });
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
 function renderVerifyPanel(result){
   const el = document.getElementById('verifyOutput');
   const tol = 1e-3;
@@ -3097,7 +3616,11 @@ function updateBeamTypeUI(){
   renderEISpanInputs();
   renderSettlementInputs();
   renderLoadPositionConstraints();
+  updateOverhangGeometrySummary();
 }
+
+// New beam types that behave like simply-supported for determinate analysis
+const SIMPLY_SUPPORTED_FAMILY = ['simply-supported','pin-roller','roller-pin','pin-hinge','hinge-roller','roller-hinge'];
 
 function initUnitsStatic(){
   renderOverhangUnits();
@@ -3171,6 +3694,7 @@ function initApp(){
     renderCriticalDashboard(result);
     renderReactionsPanel(result);
     renderFormulasPanel(result);
+    renderDetailedPanel(result);
     renderTablePanel(result);
     renderVerifyPanel(result);
   });
