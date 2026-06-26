@@ -1399,14 +1399,33 @@ function renderLoadBody(card){
   } else if (type === 'udl'){
     body.innerHTML = `
       <div class="field-row">
-        <label class="field-label">Intensity (full span)</label>
+        <label class="field-label">Intensity</label>
         <div class="input-with-unit">
           <input type="number" class="num-input ld-magnitude" value="5" step="any" />
           <select class="unit-select ld-unit"></select>
         </div>
       </div>
+      <div class="grid-2">
+        <div class="field-row">
+          <label class="field-label">Start Position (total ${totalLen} m)</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-start" value="0" step="any" />
+            <select class="unit-select ld-start-unit"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">End Position (total ${totalLen} m)</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-end" value="${fmt(getTotalLength(),3)}" step="any" />
+            <select class="unit-select ld-end-unit"></select>
+          </div>
+        </div>
+      </div>
+      <p class="field-hint">Leave Start = 0 and End = total span length for a full-span UDL.</p>
     `;
     populateUnitSelect(body.querySelector('.ld-unit'), DIST_FORCE_UNITS, 'kN/m');
+    populateUnitSelect(body.querySelector('.ld-start-unit'), LENGTH_UNITS, 'm');
+    populateUnitSelect(body.querySelector('.ld-end-unit'), LENGTH_UNITS, 'm');
   } else if (type === 'partial-udl'){
     body.innerHTML = `
       <div class="field-row">
@@ -1503,7 +1522,15 @@ function syncLoadsFromCards(){
     if (type === 'udl'){
       const mag = parseFloat(card.querySelector('.ld-magnitude').value)||0;
       const unit = card.querySelector('.ld-unit').value;
-      return { id, type, intensity: toBase(mag, unit, UNITS.distForce), start: getBeamStart(), end: getBeamEnd(), rawMag:mag, rawUnit:unit };
+      const sEl = card.querySelector('.ld-start');
+      const eEl = card.querySelector('.ld-end');
+      const s = sEl ? (parseFloat(sEl.value)||0) : 0;
+      const su = card.querySelector('.ld-start-unit')?.value || 'm';
+      const e = eEl ? (parseFloat(eEl.value)||0) : 0;
+      const eu = card.querySelector('.ld-end-unit')?.value || 'm';
+      const startPos = sEl ? toBase(s, su, UNITS.length) : getBeamStart();
+      const endPos = eEl ? toBase(e, eu, UNITS.length) : getBeamEnd();
+      return { id, type, intensity: toBase(mag, unit, UNITS.distForce), start: startPos, end: endPos, rawMag:mag, rawUnit:unit };
     }
     if (type === 'partial-udl'){
       const mag = parseFloat(card.querySelector('.ld-magnitude').value)||0;
