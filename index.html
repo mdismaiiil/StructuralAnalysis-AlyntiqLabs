@@ -3501,11 +3501,123 @@ function renderVerifyPanel(result){
   sumM -= totalAppliedMomentAbout(xA);
   const mOk = Math.abs(sumM) < Math.max(1, Math.abs(totalAppliedMomentAbout(xA)))*0.01;
 
-  // dM/dx ≈ V check at a mid sample
+  // dM/dx = V(x) — robust multi-point verification
+  // -------------------------------------------------------
+  // Strategy:
+  //   1. Collect all x-coordinates of discontinuities (point loads, reactions,
+  //      applied moments, load start/end boundaries).  Any sample within a
+  //      guard-band of these locations is skipped because the mathematical
+  //      derivative does not exist there (or is one-sided).
+  //   2. At every remaining interior sample use the central-difference formula
+  //      dM/dx ≈ (M[i+1]-M[i-1]) / (xs[i+1]-xs[i-1]).
+  //   3. Compare with V[i] using a tolerance that is relative to the local
+  //      magnitude of V, with a floor that avoids false-fails near zero crossings.
+  //   4. The check passes if at least 80 % of valid interior samples satisfy
+  //      the tolerance — this tolerates small numeric noise near boundaries
+  //      that weren't excluded.
+  //   5. We also require that at least 10 valid samples existed; if fewer are
+  //      found the grid is too coarse to judge (pass with a warning flag).
   const xs = result.xs;
-  const midI = Math.floor(xs.length/2);
-  const dMdx = (result.M[midI+1]-result.M[midI-1])/(xs[midI+1]-xs[midI-1]);
-  const dmdxOk = Math.abs(dMdx - result.V[midI]) < Math.max(1, Math.abs(result.V[midI]))*0.05;
+  const n_xs = xs.length;
+
+  // --- build discontinuity set ---
+  const discSet = new Set();
+  const addDisc = x => discSet.add(Math.round(x * 1e6) / 1e6);
+
+  // reaction positions (force reactions cause V-jumps; moment reactions cause M-jumps)
+  result.reactions.forEach(r => addDisc(r.position));
+  // point loads (V-jump → dM/dx jump)
+  STATE.loads.forEach(ld => {
+    if (ld.type === 'point') addDisc(ld.position);
+    else { addDisc(ld.start); addDisc(ld.end); }
+  });
+  // applied moments (M-jump → dM/dx singular)
+  STATE.moments.forEach(m => addDisc(m.position));
+
+  // guard-band: skip any sample within this distance of a discontinuity.
+  // Use 3× the local mesh spacing (conservative but safe).
+  const avgDx = result.totalLen / n_xs;
+  const guardBand = Math.max(avgDx * 3, result.totalLen * 0.005);
+
+  function isNearDisc(x) {
+    const xr = Math.round(x * 1e6) / 1e6;
+    for (const d of discSet) {
+      if (Math.abs(xr - d) <= guardBand) return true;
+    }
+    return false;
+  }
+
+  // NOTE: V is stored at xs[i] using shearAt(xs[i]+1e-7, reactions) — i.e. the
+  // value just to the RIGHT of xs[i].  M is stored at xs[i] exactly.
+  // For dM/dx ≈ V we need the shear in the same local segment.
+  // Central difference (M[i+1]-M[i-1])/(xs[i+1]-xs[i-1]) gives the average
+  // shear over [xs[i-1], xs[i+1]], which equals V(x) anywhere that V is
+  // continuous (no discontinuities in that interval).  So we only need to
+  // ensure neither xs[i-1] nor xs[i+1] cross a discontinuity, which the
+  // guard-band already handles.
+
+  let passCount = 0, totalCount = 0;
+  const relTol = 0.02;   // 2 % relative tolerance
+  const absTol = 0.5;    // 0.5 kN absolute floor (avoids false-fails near zero-crossings)
+
+  for (let i = 1; i < n_xs - 1; i++) {
+    const x = xs[i];
+
+    // skip if this sample or its neighbours are near a discontinuity
+    if (isNearDisc(xs[i-1]) || isNearDisc(x) || isNearDisc(xs[i+1])) continue;
+
+    // skip if the two neighbouring intervals are very different in size
+    // (non-uniform grid near injected critical points can cause large truncation error)
+    const dxL = x - xs[i-1];
+    const dxR = xs[i+1] - x;
+    if (dxR / dxL > 4 || dxL / dxR > 4) continue;
+
+    const dMdx = (result.M[i+1] - result.M[i-1]) / (xs[i+1] - xs[i-1]);
+    const Vhere = result.V[i];
+    const tol = Math.max(absTol, Math.abs(Vhere) * relTol);
+
+    totalCount++;
+    if (Math.abs(dMdx - Vhere) <= tol) passCount++;
+  }
+
+  // require ≥80 % of valid samples to pass, and at least 10 valid samples
+  const dmdxOk = totalCount >= 10
+    ? (passCount / totalCount) >= 0.80
+    : true; // too few smooth points to judge → don't penalise
+
+  // --- dV/dx = -w(x) verification ---
+  // w(x) is the net applied distributed load intensity at x (downward positive).
+  // At discontinuity-free interior points: dV/dx = -w(x).
+  // Point loads and reactions create delta-function jumps → always excluded.
+  function distributedLoadAt(x) {
+    let w = 0;
+    for (const ld of STATE.loads) {
+      if (ld.type === 'point') continue;
+      if (x >= ld.start - 1e-9 && x <= ld.end + 1e-9) {
+        w += (ld.type === 'uvl' || ld.type === 'trapezoidal')
+          ? intensityAt(ld, x)
+          : ld.intensity;
+      }
+    }
+    return w;
+  }
+
+  let vpCount = 0, vpTotal = 0;
+  for (let i = 1; i < n_xs - 1; i++) {
+    const x = xs[i];
+    if (isNearDisc(xs[i-1]) || isNearDisc(x) || isNearDisc(xs[i+1])) continue;
+    const dxL = x - xs[i-1], dxR = xs[i+1] - x;
+    if (dxR / dxL > 4 || dxL / dxR > 4) continue;
+    const dVdx = (result.V[i+1] - result.V[i-1]) / (xs[i+1] - xs[i-1]);
+    const wx   = distributedLoadAt(x);
+    const expected = -wx;
+    const tol = Math.max(0.5, Math.abs(expected) * 0.05);
+    vpTotal++;
+    if (Math.abs(dVdx - expected) <= tol) vpCount++;
+  }
+  const dvdxOk = vpTotal >= 10
+    ? (vpCount / vpTotal) >= 0.80
+    : true;
 
   function row(eq, ok){
     return `<div class="verify-row">
@@ -3517,7 +3629,8 @@ function renderVerifyPanel(result){
   el.innerHTML =
     row('ΣFy = 0  (reactions vs. applied loads)', fyOk) +
     row('ΣM = 0  (about ' + spanNodeLabel(0) + ')', mOk) +
-    row('dM/dx = V(x)', dmdxOk) +
+    row('dM/dx = V(x)  [' + passCount + '/' + totalCount + ' smooth pts]', dmdxOk) +
+    row('dV/dx = −w(x)  [' + vpCount + '/' + vpTotal + ' smooth pts]', dvdxOk) +
     row('Load Diagram ↔ SFD', true) +
     row('SFD ↔ BMD', true) +
     row('BMD ↔ Slope ↔ Deflection (Euler-Bernoulli)', true);
