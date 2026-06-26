@@ -1,0 +1,3165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Structural Analysis BETA V1.01 by Alyntiq Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ALYNTIQ LABS — STRUCTURAL ANALYSIS
+   Design tokens
+   ============================================================ */
+:root{
+  --bg-0:#0a0d12;
+  --bg-1:#0e1217;
+  --bg-2:#131820;
+  --panel:rgba(22,28,36,0.62);
+  --panel-border:rgba(255,255,255,0.07);
+  --panel-border-strong:rgba(255,255,255,0.12);
+  --grid-line:rgba(255,255,255,0.035);
+
+  --text-0:#eef1f5;
+  --text-1:#b6c0cc;
+  --text-2:#7c8794;
+  --text-3:#525c68;
+
+  --accent-cyan:#4dd8ff;
+  --accent-cyan-dim:rgba(77,216,255,0.16);
+  --accent-amber:#ffb454;
+  --accent-amber-dim:rgba(255,180,84,0.16);
+  --accent-violet:#9d8cff;
+  --accent-red:#ff6b6b;
+  --accent-green:#5ee6a8;
+
+  --font-display:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+
+  --shadow-panel:0 8px 40px rgba(0,0,0,0.45);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(77,216,255,0.07), transparent 60%),
+    radial-gradient(ellipse 1000px 700px at 100% 10%, rgba(157,140,255,0.06), transparent 60%),
+    var(--bg-0);
+  color:var(--text-0);
+  font-family:var(--font-display);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* faint blueprint grid texture */
+.grain-overlay{
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 20%, black, transparent 75%);
+}
+
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:8px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2);}
+
+:focus-visible{
+  outline:2px solid var(--accent-cyan);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+/* ============================================================
+   GLASS PANEL
+   ============================================================ */
+.glass{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-lg);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:var(--shadow-panel), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header{
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px;
+  padding:14px 28px;
+  border-bottom:1px solid var(--panel-border);
+  background:rgba(10,13,18,0.7);
+  backdrop-filter:blur(16px);
+  flex-wrap:wrap;
+}
+
+.brand{
+  display:flex; align-items:center; gap:12px;
+  text-decoration:none;
+  color:var(--text-0);
+  cursor:pointer;
+}
+.brand-mark{
+  display:flex; align-items:center; justify-content:center;
+  width:38px; height:38px;
+  border-radius:10px;
+  background:linear-gradient(145deg, var(--accent-cyan-dim), rgba(77,216,255,0.02));
+  color:var(--accent-cyan);
+  border:1px solid rgba(77,216,255,0.25);
+}
+.brand-text{display:flex; flex-direction:column; line-height:1.15;}
+.brand-title{
+  font-size:14px; font-weight:800; letter-spacing:0.06em;
+  color:var(--text-0);
+}
+.brand-sub{
+  font-size:10.5px; font-weight:600; letter-spacing:0.18em;
+  color:var(--accent-cyan);
+  text-transform:uppercase;
+}
+
+.header-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+
+.mode-toggle, .engine-toggle, .ei-mode-toggle{
+  display:flex;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--panel-border);
+  border-radius:999px;
+  padding:3px;
+  gap:2px;
+}
+.ei-mode-toggle{border-radius:10px; margin-bottom:14px;}
+
+.mode-btn{
+  appearance:none; border:none; cursor:pointer;
+  background:transparent;
+  color:var(--text-2);
+  font-family:var(--font-display);
+  font-size:12px; font-weight:600;
+  padding:7px 14px;
+  border-radius:999px;
+  transition:all .18s ease;
+  white-space:nowrap;
+}
+.ei-mode-toggle .mode-btn{border-radius:7px; flex:1;}
+.mode-btn:hover{color:var(--text-0);}
+.mode-btn.active{
+  background:var(--accent-cyan);
+  color:#06222c;
+  box-shadow:0 2px 12px rgba(77,216,255,0.35);
+}
+.engine-toggle .mode-btn.active{
+  background:var(--accent-violet);
+  color:#1a1430;
+  box-shadow:0 2px 12px rgba(157,140,255,0.35);
+}
+
+/* ============================================================
+   APP SHELL — 3 COLUMN GRID
+   ============================================================ */
+.app-shell{
+  position:relative; z-index:1;
+  display:grid;
+  grid-template-columns:360px 1fr 380px;
+  gap:18px;
+  padding:18px 22px 40px;
+  align-items:start;
+  min-height:calc(100vh - 70px);
+}
+
+.panel{display:flex; flex-direction:column; min-height:0;}
+.panel-scroll{
+  padding:20px;
+  overflow-y:auto;
+  max-height:calc(100vh - 110px);
+}
+
+@media (max-width:1180px){
+  .app-shell{grid-template-columns:1fr; }
+  .panel-scroll{max-height:none;}
+}
+
+/* ============================================================
+   INPUT PANEL
+   ============================================================ */
+.input-section{
+  margin-bottom:26px;
+  padding-bottom:22px;
+  border-bottom:1px solid var(--panel-border);
+}
+.input-section:last-child{border-bottom:none;}
+
+.section-title{
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; font-weight:700; letter-spacing:0.04em;
+  color:var(--text-0);
+  margin:0 0 16px;
+}
+.section-title-row{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+}
+.section-title-row .section-title{margin-bottom:0;}
+
+.idx{
+  font-family:var(--font-mono);
+  font-size:10.5px; font-weight:700;
+  color:var(--accent-cyan);
+  background:var(--accent-cyan-dim);
+  border:1px solid rgba(77,216,255,0.25);
+  border-radius:5px;
+  padding:2px 6px;
+}
+
+.field-row{
+  display:flex; flex-direction:column; gap:6px;
+  margin-bottom:14px;
+}
+.field-label{
+  font-size:11.5px; font-weight:600;
+  color:var(--text-2);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+
+.select-input, .num-input, .text-input{
+  width:100%;
+  background:rgba(255,255,255,0.035);
+  border:1px solid var(--panel-border-strong);
+  border-radius:var(--radius-sm);
+  color:var(--text-0);
+  font-family:var(--font-mono);
+  font-size:13px;
+  padding:10px 12px;
+  transition:border-color .15s, background .15s;
+}
+.select-input{font-family:var(--font-display); font-weight:500; cursor:pointer;}
+.select-input:focus, .num-input:focus, .text-input:focus{
+  border-color:var(--accent-cyan);
+  background:rgba(77,216,255,0.04);
+}
+.select-input option{background:var(--bg-1); color:var(--text-0);}
+
+.input-with-unit{display:flex; gap:8px;}
+.input-with-unit .num-input{flex:1; min-width:0;}
+.span-block-row .input-with-unit{align-items:center;}
+.span-block-row .remove-span-btn{flex:0 0 auto; width:30px; height:30px;}
+.unit-select{
+  flex:0 0 78px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--panel-border-strong);
+  border-radius:var(--radius-sm);
+  color:var(--accent-cyan);
+  font-family:var(--font-mono);
+  font-size:12px; font-weight:600;
+  padding:0 6px;
+  cursor:pointer;
+}
+
+.span-block{
+  display:flex; align-items:flex-end; gap:8px;
+  margin-bottom:10px;
+}
+.span-block .field-label{margin-bottom:4px;}
+.span-block-label{
+  font-family:var(--font-mono);
+  font-size:11px; color:var(--text-3);
+  flex:0 0 52px;
+}
+
+.rwm-tag{
+  font-size:9.5px; font-weight:700;
+  color:var(--accent-amber);
+  background:var(--accent-amber-dim);
+  border:1px solid rgba(255,180,84,0.3);
+  border-radius:5px;
+  padding:2px 6px;
+  letter-spacing:0.03em;
+  text-transform:uppercase;
+  margin-left:auto;
+}
+
+.field-hint{
+  font-size:11px;
+  color:var(--text-3);
+  margin:6px 2px 0;
+  line-height:1.5;
+}
+.btn-ghost-add{
+  width:100%;
+  background:transparent;
+  border:1px dashed var(--panel-border-strong);
+  color:var(--text-2);
+  border-radius:var(--radius-sm);
+  padding:9px;
+  font-size:12.5px; font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+  margin-top:4px;
+}
+.btn-ghost-add:hover{border-color:var(--accent-cyan); color:var(--accent-cyan); background:var(--accent-cyan-dim);}
+
+.btn-add{
+  background:var(--accent-cyan-dim);
+  border:1px solid rgba(77,216,255,0.3);
+  color:var(--accent-cyan);
+  border-radius:8px;
+  padding:6px 12px;
+  font-size:11.5px; font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+}
+.btn-add:hover{background:rgba(77,216,255,0.26);}
+
+.dynamic-list{display:flex; flex-direction:column; gap:12px;}
+
+.dynamic-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-md);
+  padding:14px;
+  position:relative;
+  animation:cardIn .25s ease;
+}
+@keyframes cardIn{
+  from{opacity:0; transform:translateY(-6px) scale(0.98);}
+  to{opacity:1; transform:translateY(0) scale(1);}
+}
+
+.dynamic-card-head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; margin-bottom:12px;
+}
+.dynamic-card-head .select-input{font-size:12.5px; padding:7px 10px;}
+.card-tag{
+  font-family:var(--font-mono); font-size:11px; font-weight:700;
+  color:var(--accent-amber); text-transform:uppercase; letter-spacing:0.05em;
+}
+
+.remove-card-btn{
+  flex:0 0 auto;
+  width:26px; height:26px;
+  border-radius:7px;
+  border:1px solid var(--panel-border-strong);
+  background:rgba(255,107,107,0.08);
+  color:var(--accent-red);
+  font-size:16px; line-height:1;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.remove-card-btn:hover{background:rgba(255,107,107,0.22);}
+
+.dynamic-card-body{display:flex; flex-direction:column; gap:10px;}
+.dynamic-card-body .field-row{margin-bottom:0;}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+.btn-run{
+  width:100%;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  background:linear-gradient(135deg, var(--accent-cyan), #2fb8e0);
+  color:#06222c;
+  border:none;
+  border-radius:var(--radius-md);
+  padding:14px;
+  font-size:14px; font-weight:800; letter-spacing:0.02em;
+  cursor:pointer;
+  box-shadow:0 8px 24px rgba(77,216,255,0.28);
+  transition:transform .15s, box-shadow .15s;
+}
+.btn-run:hover{transform:translateY(-1px); box-shadow:0 10px 28px rgba(77,216,255,0.4);}
+.btn-run:active{transform:translateY(0);}
+.btn-run svg{flex:0 0 auto;}
+
+/* ============================================================
+   DIAGRAM PANEL
+   ============================================================ */
+.diagram-panel{gap:14px;}
+
+.diagram-stack{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.diagram-block{
+  padding:16px 16px 10px;
+}
+
+.diagram-block-title{
+  margin:0 0 10px 4px;
+  font-size:12.5px; font-weight:700;
+  letter-spacing:0.03em;
+  color:var(--text-1);
+  display:flex; align-items:center; gap:8px;
+}
+.diagram-block-title::before{
+  content:"";
+  width:3px; height:14px;
+  background:var(--accent-cyan);
+  border-radius:2px;
+  display:inline-block;
+}
+
+.diagram-viewport{
+  position:relative;
+  min-height:260px;
+  display:flex; align-items:center; justify-content:center;
+  padding:6px;
+  overflow:hidden;
+}
+
+.empty-state{
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  color:var(--text-3);
+  font-size:13.5px;
+  text-align:center;
+  max-width:280px;
+  margin:0 auto;
+  padding:60px 24px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-lg);
+  backdrop-filter:blur(20px) saturate(140%);
+}
+
+.diagram-svg{
+  width:100%; height:100%;
+  display:none;
+}
+.diagram-svg.visible{display:block; animation:fadeDiagram .4s ease;}
+@keyframes fadeDiagram{from{opacity:0;} to{opacity:1;}}
+
+.diagram-svg text{
+  font-family:var(--font-mono);
+  fill:var(--text-1);
+}
+.diagram-svg .axis-line{stroke:rgba(255,255,255,0.18); stroke-width:1.5;}
+.diagram-svg .grid-tick{stroke:rgba(255,255,255,0.08); stroke-width:1;}
+.diagram-svg .beam-line{stroke:var(--text-0); stroke-width:5; stroke-linecap:round;}
+.diagram-svg .curve-positive{fill:rgba(77,216,255,0.18); stroke:var(--accent-cyan); stroke-width:2;}
+.diagram-svg .curve-negative{fill:rgba(255,180,84,0.18); stroke:var(--accent-amber); stroke-width:2;}
+.diagram-svg .curve-line{fill:none; stroke:var(--accent-cyan); stroke-width:2.25;}
+.diagram-svg .zero-line{stroke:rgba(255,255,255,0.3); stroke-width:1; stroke-dasharray:4 3;}
+.diagram-svg .label-text{font-size:11px; fill:var(--text-1);}
+.diagram-svg .value-text{font-size:11px; font-weight:600; fill:var(--text-0);}
+.diagram-svg .crit-dot{fill:var(--accent-amber); stroke:var(--bg-0); stroke-width:1.5;}
+.diagram-svg .support-tri{fill:rgba(255,255,255,0.08); stroke:var(--text-0); stroke-width:1.5;}
+.diagram-svg .support-fixed{fill:var(--text-1);}
+.diagram-svg .load-arrow{stroke:var(--accent-amber); stroke-width:2; fill:var(--accent-amber);}
+.diagram-svg .udl-fill{fill:rgba(255,180,84,0.14); stroke:rgba(255,180,84,0.55); stroke-width:1.25;}
+.diagram-svg .moment-arc{fill:none; stroke:var(--accent-violet); stroke-width:2;}
+
+/* ============================================================
+   CRITICAL RESULTS DASHBOARD
+   ============================================================ */
+.critical-dashboard{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+}
+@media (max-width:760px){.critical-dashboard{grid-template-columns:repeat(2,1fr);}}
+
+.crit-card{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-md);
+  padding:13px 14px;
+  display:flex; flex-direction:column; gap:3px;
+  backdrop-filter:blur(14px);
+}
+.crit-label{
+  font-size:10.5px; font-weight:700; letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--text-2);
+}
+.crit-value{
+  font-family:var(--font-mono);
+  font-size:18px; font-weight:700;
+  color:var(--text-0);
+}
+.crit-pos{
+  font-family:var(--font-mono);
+  font-size:10.5px;
+  color:var(--accent-cyan);
+}
+
+/* ============================================================
+   RESULTS PANEL
+   ============================================================ */
+.results-tabs{
+  display:flex; gap:4px; margin-bottom:16px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--panel-border);
+  border-radius:10px;
+  padding:3px;
+  flex-wrap:wrap;
+}
+.rtab{
+  flex:1 1 auto;
+  background:transparent; border:none; cursor:pointer;
+  color:var(--text-2);
+  font-size:11.5px; font-weight:600;
+  padding:8px 8px;
+  border-radius:7px;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.rtab:hover{color:var(--text-0);}
+.rtab.active{background:var(--accent-cyan); color:#06222c;}
+
+.rtab-content{display:none;}
+.rtab-content.active{display:block; animation:fadeDiagram .25s ease;}
+
+.results-empty{
+  color:var(--text-3);
+  font-size:13px;
+  text-align:center;
+  padding:40px 10px;
+}
+
+.mode-banner{
+  background:var(--accent-amber-dim);
+  border:1px solid rgba(255,180,84,0.3);
+  border-radius:var(--radius-sm);
+  padding:11px 14px;
+  margin-bottom:14px;
+  font-size:12px;
+  color:var(--text-1);
+  line-height:1.5;
+}
+.mode-banner strong{color:var(--accent-amber);}
+
+.reaction-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-md);
+  padding:14px 16px;
+  margin-bottom:10px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.reaction-name{font-size:12.5px; font-weight:600; color:var(--text-1);}
+.reaction-value{font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--accent-cyan);}
+
+.theta-card{
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top:6px; margin-bottom:14px;
+}
+.theta-chip{
+  background:var(--accent-violet-dim, rgba(157,140,255,0.12));
+  border:1px solid rgba(157,140,255,0.3);
+  border-radius:8px;
+  padding:6px 10px;
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  color:var(--accent-violet);
+}
+
+.formula-block{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--accent-cyan);
+  border-radius:var(--radius-sm);
+  padding:13px 14px;
+  margin-bottom:12px;
+}
+.formula-title{
+  font-size:11.5px; font-weight:700;
+  color:var(--accent-cyan);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  margin-bottom:8px;
+}
+.formula-line{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  color:var(--text-1);
+  line-height:1.7;
+  margin-bottom:3px;
+  word-break:break-word;
+}
+.formula-line.result{
+  color:var(--text-0); font-weight:700;
+  border-top:1px dashed var(--panel-border-strong);
+  padding-top:7px; margin-top:5px;
+}
+
+.section-divider{
+  font-size:11px; font-weight:700; letter-spacing:0.08em;
+  color:var(--text-3); text-transform:uppercase;
+  margin:18px 0 10px;
+  display:flex; align-items:center; gap:8px;
+}
+.section-divider::after{content:""; flex:1; height:1px; background:var(--panel-border);}
+
+table.data-table{
+  width:100%; border-collapse:collapse;
+  font-family:var(--font-mono); font-size:11.5px;
+}
+table.data-table th{
+  text-align:right;
+  color:var(--text-3);
+  font-weight:600;
+  padding:8px 6px;
+  border-bottom:1px solid var(--panel-border-strong);
+  text-transform:uppercase;
+  font-size:10px;
+  letter-spacing:0.03em;
+}
+table.data-table th:first-child{text-align:left;}
+table.data-table td{
+  text-align:right;
+  padding:7px 6px;
+  border-bottom:1px solid var(--panel-border);
+  color:var(--text-1);
+}
+table.data-table td:first-child{text-align:left; color:var(--text-0); font-weight:600;}
+table.data-table tr.row-critical td{color:var(--accent-amber);}
+table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+.verify-row{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px;
+  padding:11px 14px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-sm);
+  margin-bottom:8px;
+}
+.verify-eq{font-family:var(--font-mono); font-size:12px; color:var(--text-1);}
+.verify-status{
+  display:flex; align-items:center; gap:6px;
+  font-size:11px; font-weight:700;
+  padding:3px 9px; border-radius:999px;
+}
+.verify-status.pass{background:rgba(94,230,168,0.14); color:var(--accent-green);}
+.verify-status.fail{background:rgba(255,107,107,0.14); color:var(--accent-red);}
+
+.export-row{
+  display:flex; gap:8px; flex-wrap:wrap;
+  margin-top:20px;
+  padding-top:18px;
+  border-top:1px solid var(--panel-border);
+}
+.btn-export{
+  flex:1 1 auto;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--panel-border-strong);
+  color:var(--text-1);
+  border-radius:var(--radius-sm);
+  padding:9px 10px;
+  font-size:11.5px; font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-export:hover{border-color:var(--accent-cyan); color:var(--accent-cyan); background:var(--accent-cyan-dim);}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print{
+  .app-header, .input-panel, .export-row, .grain-overlay, .results-tabs{display:none !important;}
+  body{background:white; color:black;}
+  .glass{background:white; border:1px solid #ccc; box-shadow:none;}
+  .app-shell{grid-template-columns:1fr; display:block;}
+  .rtab-content{display:block !important;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="grain-overlay"></div>
+
+<header class="app-header">
+  <a class="brand" href="https://alyntiqlabs.carrd.co/#" target="_blank" rel="noopener">
+    <span class="brand-mark">
+      <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+        <path d="M4 30 L4 28 L36 28 L36 30 M8 28 L8 12 L12 12 L12 28 M18 28 L18 8 L22 8 L22 28 M28 28 L28 16 L32 16 L32 28" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="brand-text">
+      <span class="brand-title">STRUCTURAL ANALYSIS BETA V1.01</span>
+      <span class="brand-sub">BY ALYNTIQ LABS</span>
+    </span>
+  </a>
+
+  <div class="header-controls">
+    <div class="mode-toggle" id="analysisModeToggle">
+      <button class="mode-btn active" data-mode="textbook">Textbook Analysis</button>
+      <button class="mode-btn" data-mode="realworld">Real-World Analysis</button>
+    </div>
+    <div class="engine-toggle" id="engineModeToggle">
+      <button class="mode-btn active" data-engine="numerical">Numerical</button>
+      <button class="mode-btn" data-engine="symbolic">Symbolic</button>
+    </div>
+  </div>
+</header>
+
+<div style="background:#3a2a0a; color:#f2c14e; border-bottom:1px solid #5c4310; padding:10px 24px; font-size:13px; line-height:1.5; text-align:center; font-family:inherit;">
+  This software is currently in beta phase (BETA V1.01) and may not produce accurate values. Results should be independently verified before use in any professional, structural, or commercial application.
+</div>
+
+<main class="app-shell">
+
+  <!-- ============ LEFT PANEL: INPUTS ============ -->
+  <aside class="panel input-panel glass">
+    <div class="panel-scroll">
+
+      <section class="input-section">
+        <h2 class="section-title"><span class="idx">01</span> Beam Configuration</h2>
+
+        <div class="field-row">
+          <label class="field-label">Beam Type</label>
+          <select id="beamType" class="select-input">
+            <option value="simply-supported">Simply Supported Beam</option>
+            <option value="cantilever">Cantilever Beam</option>
+            <option value="fixed">Fixed Beam</option>
+            <option value="overhanging">Overhanging Beam</option>
+            <option value="propped-cantilever">Propped Cantilever Beam</option>
+            <option value="continuous">Continuous Beam</option>
+          </select>
+        </div>
+
+        <div id="spansContainer"></div>
+
+        <button id="addSpanBtn" class="btn-ghost-add">+ Add Intermediate Support</button>
+        <p class="field-hint" id="supportHint"></p>
+
+        <div class="field-row" id="overhangFields" style="display:none;">
+          <label class="field-label">Left Overhang Length</label>
+          <div class="input-with-unit">
+            <input type="number" id="leftOverhang" class="num-input" value="0" step="any" />
+            <select id="leftOverhangUnit" class="unit-select"></select>
+          </div>
+          <label class="field-label">Right Overhang Length</label>
+          <div class="input-with-unit">
+            <input type="number" id="rightOverhang" class="num-input" value="0" step="any" />
+            <select id="rightOverhangUnit" class="unit-select"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="input-section">
+        <h2 class="section-title"><span class="idx">02</span> Flexural Rigidity</h2>
+        <div class="ei-mode-toggle">
+          <button class="mode-btn active" data-eimode="direct">Direct EI</button>
+          <button class="mode-btn" data-eimode="separate">E &amp; I Separate</button>
+        </div>
+
+        <div id="eiDirectFields">
+          <div class="field-row" id="eiSpanInputs"></div>
+        </div>
+
+        <div id="eiSeparateFields" style="display:none;">
+          <div class="field-row" id="eSpanInputs"></div>
+          <div class="field-row" id="iSpanInputs"></div>
+        </div>
+      </section>
+
+      <section class="input-section" id="selfWeightSection" style="display:none;">
+        <h2 class="section-title"><span class="idx">02b</span> Self-Weight <span class="rwm-tag">Real-World Mode</span></h2>
+        <p class="field-hint">Textbook mode ignores self-weight unless entered. In Real-World mode, give a weight per unit length and it is automatically added as a UDL over the full beam.</p>
+        <div class="field-row">
+          <label class="field-label">Self-Weight Intensity</label>
+          <div class="input-with-unit">
+            <input type="number" id="selfWeightValue" class="num-input" value="0" step="any" min="0" />
+            <select id="selfWeightUnit" class="unit-select"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="input-section">
+        <div class="section-title-row">
+          <h2 class="section-title"><span class="idx">03</span> Loads</h2>
+          <button id="addLoadBtn" class="btn-add">+ Add Load</button>
+        </div>
+        <div id="loadsContainer" class="dynamic-list"></div>
+      </section>
+
+      <section class="input-section">
+        <div class="section-title-row">
+          <h2 class="section-title"><span class="idx">04</span> Applied Moments</h2>
+          <button id="addMomentBtn" class="btn-add">+ Add Moment</button>
+        </div>
+        <div id="momentsContainer" class="dynamic-list"></div>
+      </section>
+
+      <section class="input-section" id="settlementSection" style="display:none;">
+        <h2 class="section-title"><span class="idx">05</span> Support Settlement</h2>
+        <div id="settlementContainer" class="dynamic-list"></div>
+      </section>
+
+      <section class="input-section">
+        <button id="runAnalysisBtn" class="btn-run">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
+          Run Analysis
+        </button>
+      </section>
+
+    </div>
+  </aside>
+
+  <!-- ============ CENTER: DIAGRAMS ============ -->
+  <section class="panel diagram-panel">
+    <div class="empty-state" id="emptyState">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35">
+        <line x1="8" y1="48" x2="56" y2="48"/>
+        <circle cx="16" cy="48" r="4"/>
+        <circle cx="48" cy="48" r="4"/>
+        <line x1="8" y1="54" x2="14" y2="48"/>
+        <line x1="14" y1="54" x2="20" y2="48"/>
+      </svg>
+      <p>Configure a beam and run analysis to generate diagrams.</p>
+    </div>
+
+    <div class="diagram-stack" id="diagramStack" style="display:none;">
+      <div class="diagram-block glass">
+        <h3 class="diagram-block-title">Beam Diagram &amp; Free Body Diagram (FBD)</h3>
+        <div class="diagram-viewport"><svg id="diagramSVG-beam" class="diagram-svg visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg></div>
+      </div>
+      <div class="diagram-block glass">
+        <h3 class="diagram-block-title">Shear Force Diagram (SFD)</h3>
+        <div class="diagram-viewport"><svg id="diagramSVG-sfd" class="diagram-svg visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg></div>
+      </div>
+      <div class="diagram-block glass">
+        <h3 class="diagram-block-title">Bending Moment Diagram (BMD)</h3>
+        <div class="diagram-viewport"><svg id="diagramSVG-bmd" class="diagram-svg visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg></div>
+      </div>
+      <div class="diagram-block glass">
+        <h3 class="diagram-block-title">Slope Diagram (θ)</h3>
+        <div class="diagram-viewport"><svg id="diagramSVG-slope" class="diagram-svg visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg></div>
+      </div>
+      <div class="diagram-block glass">
+        <h3 class="diagram-block-title">Deflection Diagram (y)</h3>
+        <div class="diagram-viewport"><svg id="diagramSVG-deflection" class="diagram-svg visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg></div>
+      </div>
+    </div>
+
+    <div class="critical-dashboard" id="criticalDashboard" style="display:none;">
+      <div class="crit-card" data-crit="vmax"><span class="crit-label">Max Shear</span><span class="crit-value" id="critVmax">—</span><span class="crit-pos" id="critVmaxPos"></span></div>
+      <div class="crit-card" data-crit="vmin"><span class="crit-label">Min Shear</span><span class="crit-value" id="critVmin">—</span><span class="crit-pos" id="critVminPos"></span></div>
+      <div class="crit-card" data-crit="mmax"><span class="crit-label">Max Moment</span><span class="crit-value" id="critMmax">—</span><span class="crit-pos" id="critMmaxPos"></span></div>
+      <div class="crit-card" data-crit="mmin"><span class="crit-label">Min Moment</span><span class="crit-value" id="critMmin">—</span><span class="crit-pos" id="critMminPos"></span></div>
+      <div class="crit-card" data-crit="dmax"><span class="crit-label">Max Deflection</span><span class="crit-value" id="critDmax">—</span><span class="crit-pos" id="critDmaxPos"></span></div>
+      <div class="crit-card" data-crit="dmin"><span class="crit-label">Min Deflection</span><span class="crit-value" id="critDmin">—</span><span class="crit-pos" id="critDminPos"></span></div>
+      <div class="crit-card" data-crit="smax"><span class="crit-label">Max Slope</span><span class="crit-value" id="critSmax">—</span><span class="crit-pos" id="critSmaxPos"></span></div>
+      <div class="crit-card" data-crit="smin"><span class="crit-label">Min Slope</span><span class="crit-value" id="critSmin">—</span><span class="crit-pos" id="critSminPos"></span></div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT PANEL: RESULTS ============ -->
+  <aside class="panel results-panel glass">
+    <div class="panel-scroll">
+
+      <div class="results-tabs" id="resultsTabs">
+        <button class="rtab active" data-rtab="reactions">Reactions</button>
+        <button class="rtab" data-rtab="formulas">Formulas</button>
+        <button class="rtab" data-rtab="table">Critical Table</button>
+        <button class="rtab" data-rtab="verify">Verification</button>
+      </div>
+
+      <div class="rtab-content active" id="rtab-reactions">
+        <div id="reactionsOutput" class="results-empty">Run analysis to see support reactions.</div>
+      </div>
+
+      <div class="rtab-content" id="rtab-formulas">
+        <div id="formulasOutput" class="results-empty">Run analysis to see formula derivations.</div>
+      </div>
+
+      <div class="rtab-content" id="rtab-table">
+        <div id="tableOutput" class="results-empty">Run analysis to see the critical points table.</div>
+      </div>
+
+      <div class="rtab-content" id="rtab-verify">
+        <div id="verifyOutput" class="results-empty">Run analysis to see engineering verification checks.</div>
+      </div>
+
+      <div class="export-row">
+        <button id="printBtn" class="btn-export">Print Results</button>
+        <button id="exportCalcBtn" class="btn-export">Export Calculations</button>
+        <button id="exportSummaryBtn" class="btn-export">Export Summary</button>
+      </div>
+
+    </div>
+  </aside>
+
+</main>
+
+<template id="loadTemplate">
+  <div class="dynamic-card" data-kind="load">
+    <div class="dynamic-card-head">
+      <select class="load-type select-input">
+        <option value="point">Point Load</option>
+        <option value="udl">UDL (Uniform)</option>
+        <option value="uvl">UVL (Triangular)</option>
+        <option value="partial-udl">Partial UDL</option>
+        <option value="trapezoidal">Trapezoidal Load</option>
+      </select>
+      <button class="remove-card-btn" title="Remove">&times;</button>
+    </div>
+    <div class="dynamic-card-body"></div>
+  </div>
+</template>
+
+<template id="momentTemplate">
+  <div class="dynamic-card" data-kind="moment">
+    <div class="dynamic-card-head">
+      <span class="card-tag">Moment</span>
+      <button class="remove-card-btn" title="Remove">&times;</button>
+    </div>
+    <div class="dynamic-card-body"></div>
+  </div>
+</template>
+
+<script>
+'use strict';
+
+/* ============================================================
+   UNIT CONVERSION TABLES  (base SI: m, N, N·m, N/m, Pa, m^4)
+   ============================================================ */
+const UNITS = {
+  length: { mm:0.001, cm:0.01, m:1, in:0.0254, ft:0.3048 },
+  force:  { N:1, kN:1e3, MN:1e6, GN:1e9, lb:4.4482216153, kip:4448.2216153 },
+  distForce: {
+    'N/mm':1000, 'N/m':1, 'kN/m':1000, 'MN/m':1e6, 'kN/mm':1e6,
+    'lb/ft':4.4482216153/0.3048, 'kip/ft':4448.2216153/0.3048
+  },
+  moment: { 'N·mm':0.001, 'N·m':1, 'kN·m':1e3, 'MN·m':1e6, 'GN·m':1e9, 'lb·ft':1.3558179483, 'kip·ft':1355.8179483 },
+  EI: { 'N·mm²':1e-6, 'N·m²':1, 'kN·m²':1e3, 'MN·m²':1e6, 'GN·m²':1e9 },
+  E: { Pa:1, kPa:1e3, MPa:1e6, GPa:1e9, 'N/mm²':1e6, 'kN/m²':1e3, 'MN/m²':1e6 },
+  I: { 'mm⁴':1e-12, 'cm⁴':1e-8, 'm⁴':1, 'in⁴':4.16231426e-7, 'ft⁴':8.630974757e-3 }
+};
+
+function toBase(value, unit, table){ return value * table[unit]; }
+function fromBase(value, unit, table){ return value / table[unit]; }
+
+const LENGTH_UNITS = Object.keys(UNITS.length);
+const FORCE_UNITS = Object.keys(UNITS.force);
+const DIST_FORCE_UNITS = Object.keys(UNITS.distForce);
+const MOMENT_UNITS = Object.keys(UNITS.moment);
+const EI_UNITS = Object.keys(UNITS.EI);
+const E_UNITS = Object.keys(UNITS.E);
+const I_UNITS = Object.keys(UNITS.I);
+
+function populateUnitSelect(sel, list, def){
+  sel.innerHTML = list.map(u => `<option value="${u}" ${u===def?'selected':''}>${u}</option>`).join('');
+}
+
+/* ============================================================
+   GLOBAL APP STATE
+   ============================================================ */
+const STATE = {
+  analysisMode: 'textbook',      // textbook | realworld
+  engineMode: 'numerical',       // numerical | symbolic
+  eiMode: 'direct',              // direct | separate
+  beamType: 'simply-supported',
+  numSpans: 1,
+  spanLengths: [],                // base meters, per span
+  leftOverhang: 0,
+  rightOverhang: 0,
+  EI: [],                         // base N·m^2 per span
+  loads: [],                      // {id, type, ...}
+  moments: [],                    // {id, magnitude(base N·m), position(base m), dir}
+  settlements: {},                // supportIndex -> settlement (base m)
+  selfWeightIntensity: 0,         // base N/m, only applied in real-world mode
+  result: null,
+  idCounter: 1
+};
+
+function nextId(){ return STATE.idCounter++; }
+
+/* number formatting: no scientific notation, up to 3 dp, no trailing zeros */
+function fmt(num, maxDp = 3){
+  if (num === null || num === undefined || isNaN(num)) return '0';
+  if (Math.abs(num) < 1e-9) num = 0;
+  let s = num.toFixed(maxDp);
+  if (s.indexOf('.') !== -1){
+    s = s.replace(/0+$/,'');
+    s = s.replace(/\.$/,'');
+  }
+  if (s === '-0') s = '0';
+  return s;
+}
+
+function fmtPos(num){ return fmt(num, 4) + ' m'; }
+
+/* ============================================================
+   BEAM TOPOLOGY
+   Each beam is modeled as a sequence of nodes (supports) connected
+   by spans. Overhanging beams add free-end segments beyond the
+   end supports. All geometry is stored in base meters.
+   ============================================================ */
+
+function beamSupportCount(beamType, numSpans){
+  // every beam type now scales with the number of spans (i.e. with how many
+  // intermediate supports the user has added). Base end-conditions are applied
+  // by supportTypeFor(); this only returns the total NODE count.
+  return Math.max(1, numSpans) + 1;
+}
+
+function supportTypeFor(beamType, supportIndex, totalSupports){
+  // returns 'pin' | 'roller' | 'fixed' | 'free'
+  const isLast = supportIndex === totalSupports - 1;
+  const isInterior = supportIndex > 0 && !isLast;
+
+  if (beamType === 'cantilever'){
+    // Fixed at A (node 0). Every subsequent NODE that is not the very last one is a
+    // real roller prop. The LAST node is never a true support — the final span is
+    // always the free unsupported overhang beyond the last prop (or beyond A itself
+    // if no props have been added), matching how "+ Add Intermediate Support" inserts
+    // a prop strictly between the fixed end and the free tip.
+    if (supportIndex === 0) return 'fixed';
+    if (isLast) return 'free';
+    return 'roller';
+  }
+  if (beamType === 'fixed'){
+    if (supportIndex === 0) return 'fixed';
+    if (isLast) return 'fixed';
+    return 'roller'; // intermediate prop between two fixed ends
+  }
+  if (beamType === 'propped-cantilever'){
+    if (supportIndex === 0) return 'fixed';
+    return 'roller'; // every other support (incl. interior props) is a roller
+  }
+  if (beamType === 'simply-supported'){
+    if (supportIndex === 0) return 'pin';
+    return 'roller'; // last AND any interior added supports
+  }
+  if (beamType === 'overhanging'){
+    // The first/last NODE here is the first/last REAL prop (pin or roller). Physical
+    // overhang segments beyond these nodes are free tips, modeled as extra unsupported
+    // length added on top via STATE.leftOverhang / STATE.rightOverhang (handled in
+    // getSupportPositions for geometry, and reduced to equivalent joint loads in
+    // solveSlopeDeflection for the indeterminate multi-span case). The support NODES
+    // themselves are pin/roller props, not 'free' — the overhang is the cantilevered
+    // length beyond them, not the node.
+    if (supportIndex === 0) return 'pin';
+    return 'roller';
+  }
+  if (beamType === 'continuous'){
+    if (supportIndex === 0) return 'pin';
+    return 'roller';
+  }
+  return 'pin';
+}
+
+function getTotalLength(){
+  const spans = STATE.spanLengths.reduce((a,b)=>a+b, 0);
+  return STATE.leftOverhang + spans + STATE.rightOverhang;
+}
+
+// x-coordinate (from leftmost physical end) of each support node, base meters
+function getSupportPositions(){
+  const positions = [];
+  let x = STATE.leftOverhang;
+  positions.push(x);
+  for (const L of STATE.spanLengths){
+    x += L;
+    positions.push(x);
+  }
+  return positions;
+}
+
+function getBeamStart(){ return 0; }
+function getBeamEnd(){ return getTotalLength(); }
+
+/* ============================================================
+   DYNAMIC SPAN-LENGTH INPUT RENDERING
+   ============================================================ */
+function renderSpanInputs(){
+  const container = document.getElementById('spansContainer');
+  // preserve any values already typed before re-rendering
+  const prevLengths = Array.from(container.querySelectorAll('.span-len-input')).map(inp=>{
+    const idx = inp.dataset.span;
+    const unitSel = container.querySelector(`.span-len-unit[data-span="${idx}"]`);
+    return { value: inp.value, unit: unitSel ? unitSel.value : 'm' };
+  });
+
+  container.innerHTML = '';
+  const n = Math.max(STATE.numSpans, 1);
+  const minRequired = minSpansForBeamType(STATE.beamType);
+
+  for (let i = 0; i < n; i++){
+    const prev = prevLengths[i];
+    const row = document.createElement('div');
+    row.className = 'field-row span-block-row';
+    const canRemove = n > minRequired;
+    row.innerHTML = `
+      <label class="field-label">${n>1 ? `Span ${i+1} Length (${spanNodeLabel(i)}–${spanNodeLabel(i+1)})` : 'Beam Length'}</label>
+      <div class="input-with-unit">
+        <input type="number" class="num-input span-len-input" data-span="${i}" value="${prev ? prev.value : 4}" step="any" min="0.0001" />
+        <select class="unit-select span-len-unit" data-span="${i}"></select>
+        ${canRemove ? `<button type="button" class="remove-card-btn remove-span-btn" data-span="${i}" title="Remove this support">&times;</button>` : ''}
+      </div>
+    `;
+    container.appendChild(row);
+    populateUnitSelect(row.querySelector('.span-len-unit'), LENGTH_UNITS, prev ? prev.unit : 'm');
+  }
+
+  container.querySelectorAll('.span-len-input, .span-len-unit').forEach(el=>{
+    el.addEventListener('input', syncSpanLengthsFromInputs);
+    el.addEventListener('change', syncSpanLengthsFromInputs);
+  });
+  container.querySelectorAll('.remove-span-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const removeIdx = parseInt(btn.dataset.span, 10);
+      removeSpanAt(removeIdx);
+    });
+  });
+
+  updateSupportHint();
+  syncSpanLengthsFromInputs();
+}
+
+function minSpansForBeamType(beamType){
+  // minimum number of spans any beam type needs to remain a valid example of that type
+  return beamType === 'continuous' ? 2 : 1;
+}
+
+function removeSpanAt(removeIdx){
+  // merge the removed span's length into its neighbour rather than just deleting,
+  // so total beam length is preserved; simplest: drop that span and reduce numSpans
+  const container = document.getElementById('spansContainer');
+  const lengths = Array.from(container.querySelectorAll('.span-len-input')).map(inp=>{
+    const idx = inp.dataset.span;
+    const unitSel = container.querySelector(`.span-len-unit[data-span="${idx}"]`);
+    return toBase(parseFloat(inp.value)||0, unitSel.value, UNITS.length);
+  });
+  if (lengths.length <= minSpansForBeamType(STATE.beamType)) return;
+  // merge removed span length into the next span (or previous, if removing the last)
+  if (removeIdx < lengths.length - 1){
+    lengths[removeIdx+1] += lengths[removeIdx];
+  } else {
+    lengths[removeIdx-1] += lengths[removeIdx];
+  }
+  lengths.splice(removeIdx, 1);
+  STATE.numSpans = lengths.length;
+  STATE.spanLengths = lengths;
+  // also drop settlement entries beyond new node count by re-rendering settlement inputs after
+  renderSpanInputsFromLengths(lengths);
+  renderEISpanInputs();
+  renderSettlementInputs();
+}
+
+function renderSpanInputsFromLengths(lengthsBase){
+  // rebuild span inputs directly from a known base-meter length array (used after a merge/remove)
+  const container = document.getElementById('spansContainer');
+  container.innerHTML = '';
+  const n = lengthsBase.length;
+  const minRequired = minSpansForBeamType(STATE.beamType);
+  for (let i = 0; i < n; i++){
+    const row = document.createElement('div');
+    row.className = 'field-row span-block-row';
+    const canRemove = n > minRequired;
+    const val = fromBase(lengthsBase[i], 'm', UNITS.length);
+    row.innerHTML = `
+      <label class="field-label">${n>1 ? `Span ${i+1} Length (${spanNodeLabel(i)}–${spanNodeLabel(i+1)})` : 'Beam Length'}</label>
+      <div class="input-with-unit">
+        <input type="number" class="num-input span-len-input" data-span="${i}" value="${fmt(val,4)}" step="any" min="0.0001" />
+        <select class="unit-select span-len-unit" data-span="${i}"></select>
+        ${canRemove ? `<button type="button" class="remove-card-btn remove-span-btn" data-span="${i}" title="Remove this support">&times;</button>` : ''}
+      </div>
+    `;
+    container.appendChild(row);
+    populateUnitSelect(row.querySelector('.span-len-unit'), LENGTH_UNITS, 'm');
+  }
+  container.querySelectorAll('.span-len-input, .span-len-unit').forEach(el=>{
+    el.addEventListener('input', syncSpanLengthsFromInputs);
+    el.addEventListener('change', syncSpanLengthsFromInputs);
+  });
+  container.querySelectorAll('.remove-span-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const removeIdx = parseInt(btn.dataset.span, 10);
+      removeSpanAt(removeIdx);
+    });
+  });
+  updateSupportHint();
+  syncSpanLengthsFromInputs();
+}
+
+function updateSupportHint(){
+  const hint = document.getElementById('supportHint');
+  if (!hint) return;
+  const n = STATE.numSpans;
+  const type = STATE.beamType;
+  if (n <= 1){
+    const msgs = {
+      'simply-supported':'Pin + roller end supports. Add an intermediate support to make this a propped/continuous condition.',
+      'cantilever':'Fixed at A, free tip at the far end. Add a support to prop the free end.',
+      'fixed':'Fixed at both ends.',
+      'overhanging':'Pin + roller with overhang(s) beyond the supports.',
+      'propped-cantilever':'Fixed at A, roller prop at B.',
+      'continuous':'Add at least one more support to form a continuous beam.'
+    };
+    hint.textContent = msgs[type] || '';
+  } else {
+    hint.textContent = `${n+1} supports total. Intermediate supports are modeled as roller props; the solver automatically switches to the indeterminate (slope-deflection) engine.`;
+  }
+}
+
+function spanNodeLabel(i){
+  return String.fromCharCode(65 + i); // A, B, C...
+}
+
+function syncSpanLengthsFromInputs(){
+  const inputs = Array.from(document.querySelectorAll('.span-len-input'));
+  STATE.spanLengths = inputs.map(inp=>{
+    const idx = inp.dataset.span;
+    const unitSel = document.querySelector(`.span-len-unit[data-span="${idx}"]`);
+    const val = parseFloat(inp.value) || 0;
+    const unit = unitSel ? unitSel.value : 'm';
+    return toBase(val, unit, UNITS.length);
+  });
+  renderEISpanInputs();
+  renderLoadPositionConstraints();
+  rerenderBeamPreviewIfIdle();
+}
+
+function renderOverhangUnits(){
+  populateUnitSelect(document.getElementById('leftOverhangUnit'), LENGTH_UNITS, 'm');
+  populateUnitSelect(document.getElementById('rightOverhangUnit'), LENGTH_UNITS, 'm');
+}
+
+function syncOverhangs(){
+  const lv = Math.max(0, parseFloat(document.getElementById('leftOverhang').value) || 0);
+  const lu = document.getElementById('leftOverhangUnit').value;
+  const rv = Math.max(0, parseFloat(document.getElementById('rightOverhang').value) || 0);
+  const ru = document.getElementById('rightOverhangUnit').value;
+  STATE.leftOverhang = toBase(lv, lu, UNITS.length);
+  STATE.rightOverhang = toBase(rv, ru, UNITS.length);
+  renderLoadPositionConstraints();
+  rerenderBeamPreviewIfIdle();
+}
+
+/* ============================================================
+   EI INPUT RENDERING (direct or separate, per span)
+   ============================================================ */
+function renderEISpanInputs(){
+  const n = Math.max(STATE.numSpans, 1);
+
+  const directContainer = document.getElementById('eiSpanInputs');
+  directContainer.innerHTML = '';
+  for (let i = 0; i < n; i++){
+    const row = document.createElement('div');
+    row.style.marginBottom = '10px';
+    row.innerHTML = `
+      <label class="field-label">${n>1?`Span ${i+1} EI`:'EI'}</label>
+      <div class="input-with-unit">
+        <input type="number" class="num-input ei-direct-input" data-span="${i}" value="50000" step="any" />
+        <select class="unit-select ei-direct-unit" data-span="${i}"></select>
+      </div>
+    `;
+    directContainer.appendChild(row);
+    populateUnitSelect(row.querySelector('.ei-direct-unit'), EI_UNITS, 'kN·m²');
+  }
+
+  const eContainer = document.getElementById('eSpanInputs');
+  eContainer.innerHTML = '';
+  const iContainer = document.getElementById('iSpanInputs');
+  iContainer.innerHTML = '';
+  for (let i = 0; i < n; i++){
+    const erow = document.createElement('div');
+    erow.style.marginBottom = '10px';
+    erow.innerHTML = `
+      <label class="field-label">${n>1?`Span ${i+1} E`:"Young's Modulus E"}</label>
+      <div class="input-with-unit">
+        <input type="number" class="num-input e-input" data-span="${i}" value="200" step="any" />
+        <select class="unit-select e-unit" data-span="${i}"></select>
+      </div>
+    `;
+    eContainer.appendChild(erow);
+    populateUnitSelect(erow.querySelector('.e-unit'), E_UNITS, 'GPa');
+
+    const irow = document.createElement('div');
+    irow.style.marginBottom = '10px';
+    irow.innerHTML = `
+      <label class="field-label">${n>1?`Span ${i+1} I`:'Moment of Inertia I'}</label>
+      <div class="input-with-unit">
+        <input type="number" class="num-input i-input" data-span="${i}" value="8000" step="any" />
+        <select class="unit-select i-unit" data-span="${i}"></select>
+      </div>
+    `;
+    iContainer.appendChild(irow);
+    populateUnitSelect(irow.querySelector('.i-unit'), I_UNITS, 'cm⁴');
+  }
+
+  directContainer.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', syncEI); el.addEventListener('change', syncEI);
+  });
+  eContainer.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', syncEI); el.addEventListener('change', syncEI);
+  });
+  iContainer.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', syncEI); el.addEventListener('change', syncEI);
+  });
+
+  syncEI();
+}
+
+function syncEI(){
+  // Hard lower bound for EI (N·m²). Values above zero but below this are almost certainly
+  // either a typo or an attempt to model a plastic-hinge/zero-stiffness condition by brute
+  // force — the trapezoidal double-integration scheme used for slope/deflection has no
+  // internal step-size adaptation and produces unbounded deflection spikes as EI→0.
+  // Clamping (rather than silently substituting the unrelated 50000 default) keeps the
+  // user's intent — "this span is very flexible" — while keeping the numerics finite.
+  const EI_MIN = 1.0;
+  const n = Math.max(STATE.numSpans, 1);
+  STATE.EI = [];
+  if (STATE.eiMode === 'direct'){
+    for (let i = 0; i < n; i++){
+      const inp = document.querySelector(`.ei-direct-input[data-span="${i}"]`);
+      const unitSel = document.querySelector(`.ei-direct-unit[data-span="${i}"]`);
+      if (!inp) { STATE.EI.push(50000); continue; }
+      const val = parseFloat(inp.value) || 0;
+      const eiBase = toBase(val, unitSel.value, UNITS.EI);
+      STATE.EI.push(eiBase > 0 ? Math.max(eiBase, EI_MIN) : 50000); // guard against zero/blank EI (would divide by zero downstream) and clamp near-zero EI
+    }
+  } else {
+    for (let i = 0; i < n; i++){
+      const einp = document.querySelector(`.e-input[data-span="${i}"]`);
+      const eunit = document.querySelector(`.e-unit[data-span="${i}"]`);
+      const iinp = document.querySelector(`.i-input[data-span="${i}"]`);
+      const iunit = document.querySelector(`.i-unit[data-span="${i}"]`);
+      if (!einp || !iinp){ STATE.EI.push(50000); continue; }
+      const Eval = toBase(parseFloat(einp.value)||0, eunit.value, UNITS.E);
+      const Ival = toBase(parseFloat(iinp.value)||0, iunit.value, UNITS.I);
+      const eiBase = Eval * Ival;
+      STATE.EI.push(eiBase > 0 ? Math.max(eiBase, EI_MIN) : 50000); // guard against zero/blank E or I and clamp near-zero EI
+    }
+  }
+  rerenderBeamPreviewIfIdle();
+}
+
+/* ============================================================
+   LOAD CARDS
+   ============================================================ */
+function addLoadCard(){
+  const tpl = document.getElementById('loadTemplate');
+  const node = tpl.content.firstElementChild.cloneNode(true);
+  const id = nextId();
+  node.dataset.id = id;
+  document.getElementById('loadsContainer').appendChild(node);
+
+  const typeSel = node.querySelector('.load-type');
+  typeSel.addEventListener('change', ()=> renderLoadBody(node));
+  node.querySelector('.remove-card-btn').addEventListener('click', ()=>{
+    node.remove();
+    syncLoadsFromCards();
+  });
+
+  renderLoadBody(node);
+  renderLoadPositionConstraints();
+}
+
+function renderLoadBody(card){
+  const type = card.querySelector('.load-type').value;
+  const body = card.querySelector('.dynamic-card-body');
+  const totalLen = fmt(getTotalLength(),3);
+
+  if (type === 'point'){
+    body.innerHTML = `
+      <div class="grid-2">
+        <div class="field-row">
+          <label class="field-label">Magnitude</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-magnitude" value="10" step="any" />
+            <select class="unit-select ld-unit"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Position (from left, total ${totalLen} m)</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-position" value="0" step="any" />
+            <select class="unit-select ld-position-unit"></select>
+          </div>
+        </div>
+      </div>
+    `;
+    populateUnitSelect(body.querySelector('.ld-unit'), FORCE_UNITS, 'kN');
+    populateUnitSelect(body.querySelector('.ld-position-unit'), LENGTH_UNITS, 'm');
+  } else if (type === 'udl'){
+    body.innerHTML = `
+      <div class="field-row">
+        <label class="field-label">Intensity (full span)</label>
+        <div class="input-with-unit">
+          <input type="number" class="num-input ld-magnitude" value="5" step="any" />
+          <select class="unit-select ld-unit"></select>
+        </div>
+      </div>
+    `;
+    populateUnitSelect(body.querySelector('.ld-unit'), DIST_FORCE_UNITS, 'kN/m');
+  } else if (type === 'partial-udl'){
+    body.innerHTML = `
+      <div class="field-row">
+        <label class="field-label">Intensity</label>
+        <div class="input-with-unit">
+          <input type="number" class="num-input ld-magnitude" value="5" step="any" />
+          <select class="unit-select ld-unit"></select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field-row">
+          <label class="field-label">Start Position</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-start" value="0" step="any" />
+            <select class="unit-select ld-start-unit"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">End Position</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-end" value="2" step="any" />
+            <select class="unit-select ld-end-unit"></select>
+          </div>
+        </div>
+      </div>
+    `;
+    populateUnitSelect(body.querySelector('.ld-unit'), DIST_FORCE_UNITS, 'kN/m');
+    populateUnitSelect(body.querySelector('.ld-start-unit'), LENGTH_UNITS, 'm');
+    populateUnitSelect(body.querySelector('.ld-end-unit'), LENGTH_UNITS, 'm');
+  } else if (type === 'uvl' || type === 'trapezoidal'){
+    body.innerHTML = `
+      <div class="grid-2">
+        <div class="field-row">
+          <label class="field-label">Start Intensity</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-w1" value="${type==='uvl'?0:2}" step="any" />
+            <select class="unit-select ld-unit"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">End Intensity</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-w2" value="6" step="any" />
+            <select class="unit-select ld-unit2"></select>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field-row">
+          <label class="field-label">Start Position</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-start" value="0" step="any" />
+            <select class="unit-select ld-start-unit"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">End Position</label>
+          <div class="input-with-unit">
+            <input type="number" class="num-input ld-end" value="4" step="any" />
+            <select class="unit-select ld-end-unit"></select>
+          </div>
+        </div>
+      </div>
+    `;
+    populateUnitSelect(body.querySelector('.ld-unit'), DIST_FORCE_UNITS, 'kN/m');
+    populateUnitSelect(body.querySelector('.ld-unit2'), DIST_FORCE_UNITS, 'kN/m');
+    body.querySelector('.ld-unit').addEventListener('change', e=>{
+      body.querySelector('.ld-unit2').value = e.target.value;
+      syncLoadsFromCards();
+    });
+    populateUnitSelect(body.querySelector('.ld-start-unit'), LENGTH_UNITS, 'm');
+    populateUnitSelect(body.querySelector('.ld-end-unit'), LENGTH_UNITS, 'm');
+  }
+
+  body.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', syncLoadsFromCards);
+    el.addEventListener('change', syncLoadsFromCards);
+  });
+  syncLoadsFromCards();
+}
+
+function syncLoadsFromCards(){
+  const cards = Array.from(document.querySelectorAll('#loadsContainer .dynamic-card'));
+  STATE.loads = cards.map(card=>{
+    const type = card.querySelector('.load-type').value;
+    const id = card.dataset.id;
+    if (type === 'point'){
+      const mag = parseFloat(card.querySelector('.ld-magnitude').value)||0;
+      const unit = card.querySelector('.ld-unit').value;
+      const pos = parseFloat(card.querySelector('.ld-position').value)||0;
+      const posUnit = card.querySelector('.ld-position-unit').value;
+      return { id, type, magnitude: toBase(mag, unit, UNITS.force), position: toBase(pos, posUnit, UNITS.length), rawMag:mag, rawUnit:unit };
+    }
+    if (type === 'udl'){
+      const mag = parseFloat(card.querySelector('.ld-magnitude').value)||0;
+      const unit = card.querySelector('.ld-unit').value;
+      return { id, type, intensity: toBase(mag, unit, UNITS.distForce), start: getBeamStart(), end: getBeamEnd(), rawMag:mag, rawUnit:unit };
+    }
+    if (type === 'partial-udl'){
+      const mag = parseFloat(card.querySelector('.ld-magnitude').value)||0;
+      const unit = card.querySelector('.ld-unit').value;
+      const s = parseFloat(card.querySelector('.ld-start').value)||0;
+      const su = card.querySelector('.ld-start-unit').value;
+      const e = parseFloat(card.querySelector('.ld-end').value)||0;
+      const eu = card.querySelector('.ld-end-unit').value;
+      return { id, type, intensity: toBase(mag, unit, UNITS.distForce), start: toBase(s,su,UNITS.length), end: toBase(e,eu,UNITS.length), rawMag:mag, rawUnit:unit };
+    }
+    if (type === 'uvl' || type === 'trapezoidal'){
+      const w1 = parseFloat(card.querySelector('.ld-w1').value)||0;
+      const w2 = parseFloat(card.querySelector('.ld-w2').value)||0;
+      const unit = card.querySelector('.ld-unit').value;
+      const s = parseFloat(card.querySelector('.ld-start').value)||0;
+      const su = card.querySelector('.ld-start-unit').value;
+      const e = parseFloat(card.querySelector('.ld-end').value)||0;
+      const eu = card.querySelector('.ld-end-unit').value;
+      return {
+        id, type,
+        w1: toBase(w1, unit, UNITS.distForce),
+        w2: toBase(w2, unit, UNITS.distForce),
+        start: toBase(s,su,UNITS.length), end: toBase(e,eu,UNITS.length),
+        rawW1:w1, rawW2:w2, rawUnit:unit
+      };
+    }
+    return null;
+  }).filter(Boolean);
+  rerenderBeamPreviewIfIdle();
+}
+
+function renderLoadPositionConstraints(){
+  // Non-destructively refresh the "(total X m)" context shown in each position field's
+  // label whenever beam geometry changes — update label text only, never rebuild inputs
+  // (rebuilding would wipe whatever the user has already typed).
+  const totalLen = fmt(getTotalLength(),3);
+  document.querySelectorAll('#loadsContainer .ld-position').forEach(inp=>{
+    const label = inp.closest('.field-row')?.querySelector('.field-label');
+    if (label) label.textContent = `Position (from left, total ${totalLen} m)`;
+  });
+  document.querySelectorAll('#loadsContainer .ld-start').forEach(inp=>{
+    const label = inp.closest('.field-row')?.querySelector('.field-label');
+    if (label) label.textContent = `Start Position (total ${totalLen} m)`;
+  });
+  document.querySelectorAll('#loadsContainer .ld-end').forEach(inp=>{
+    const label = inp.closest('.field-row')?.querySelector('.field-label');
+    if (label) label.textContent = `End Position (total ${totalLen} m)`;
+  });
+  document.querySelectorAll('#momentsContainer .mm-position').forEach(inp=>{
+    const label = inp.closest('.field-row')?.querySelector('.field-label');
+    if (label) label.textContent = `Position (from left, total ${totalLen} m)`;
+  });
+}
+
+/* ============================================================
+   MOMENT CARDS
+   ============================================================ */
+function addMomentCard(){
+  const tpl = document.getElementById('momentTemplate');
+  const node = tpl.content.firstElementChild.cloneNode(true);
+  const id = nextId();
+  node.dataset.id = id;
+  document.getElementById('momentsContainer').appendChild(node);
+
+  const body = node.querySelector('.dynamic-card-body');
+  body.innerHTML = `
+    <div class="grid-2">
+      <div class="field-row">
+        <label class="field-label">Magnitude</label>
+        <div class="input-with-unit">
+          <input type="number" class="num-input mm-magnitude" value="10" step="any" />
+          <select class="unit-select mm-unit"></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Position</label>
+        <div class="input-with-unit">
+          <input type="number" class="num-input mm-position" value="2" step="any" />
+          <select class="unit-select mm-position-unit"></select>
+        </div>
+      </div>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Direction</label>
+      <select class="select-input mm-direction">
+        <option value="cw">Clockwise</option>
+        <option value="ccw">Anticlockwise</option>
+      </select>
+    </div>
+  `;
+  populateUnitSelect(body.querySelector('.mm-unit'), MOMENT_UNITS, 'kN·m');
+  populateUnitSelect(body.querySelector('.mm-position-unit'), LENGTH_UNITS, 'm');
+
+  node.querySelector('.remove-card-btn').addEventListener('click', ()=>{ node.remove(); syncMomentsFromCards(); });
+  body.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', syncMomentsFromCards);
+    el.addEventListener('change', syncMomentsFromCards);
+  });
+  syncMomentsFromCards();
+  renderLoadPositionConstraints();
+}
+
+function syncMomentsFromCards(){
+  const cards = Array.from(document.querySelectorAll('#momentsContainer .dynamic-card'));
+  STATE.moments = cards.map(card=>{
+    const id = card.dataset.id;
+    const mag = parseFloat(card.querySelector('.mm-magnitude').value)||0;
+    const unit = card.querySelector('.mm-unit').value;
+    const pos = parseFloat(card.querySelector('.mm-position').value)||0;
+    const posUnit = card.querySelector('.mm-position-unit').value;
+    const dir = card.querySelector('.mm-direction').value;
+    const baseMag = toBase(mag, unit, UNITS.moment);
+    // sign convention: clockwise applied moment -> positive per right-hand rule used in our engine
+    return { id, magnitude: dir==='cw' ? baseMag : -baseMag, position: toBase(pos,posUnit,UNITS.length), dir };
+  });
+  rerenderBeamPreviewIfIdle();
+}
+
+/* ============================================================
+   SETTLEMENT CARDS (continuous / propped / fixed beams)
+   ============================================================ */
+function renderSettlementInputs(){
+  const section = document.getElementById('settlementSection');
+  const container = document.getElementById('settlementContainer');
+  const supports = beamSupportCount(STATE.beamType, STATE.numSpans);
+  if (isIndeterminate(STATE.beamType, STATE.numSpans)){
+    section.style.display = '';
+    container.innerHTML = '';
+    for (let i = 0; i < supports; i++){
+      // skip the free tip of a cantilever (single-span case never reaches here since it's determinate,
+      // but guard anyway for the rare totalSupports<=2 cantilever edge case)
+      if (supportTypeFor(STATE.beamType, i, supports) === 'free') continue;
+      const row = document.createElement('div');
+      row.className = 'field-row';
+      row.innerHTML = `
+        <label class="field-label">Settlement at ${spanNodeLabel(i)}</label>
+        <div class="input-with-unit">
+          <input type="number" class="num-input settle-input" data-idx="${i}" value="0" step="any" />
+          <select class="unit-select settle-unit" data-idx="${i}"></select>
+        </div>
+      `;
+      container.appendChild(row);
+      populateUnitSelect(row.querySelector('.settle-unit'), LENGTH_UNITS, 'mm');
+    }
+    container.querySelectorAll('input,select').forEach(el=>{
+      el.addEventListener('input', syncSettlements);
+      el.addEventListener('change', syncSettlements);
+    });
+    syncSettlements();
+  } else {
+    section.style.display = 'none';
+    STATE.settlements = {};
+  }
+}
+
+function syncSettlements(){
+  STATE.settlements = {};
+  document.querySelectorAll('.settle-input').forEach(inp=>{
+    const idx = inp.dataset.idx;
+    const unitSel = document.querySelector(`.settle-unit[data-idx="${idx}"]`);
+    const val = parseFloat(inp.value)||0;
+    STATE.settlements[idx] = toBase(val, unitSel.value, UNITS.length);
+  });
+}
+
+/* ============================================================
+   LOAD HELPERS — equivalent resultant force & centroid, and
+   distributed-intensity function w(x) for any x along the beam
+   ============================================================ */
+
+// total downward point-equivalent force contributed by a load between [a,b] (whole beam if not bounded)
+function loadResultant(load){
+  if (load.type === 'point') return { F: load.magnitude, x: load.position };
+  if (load.type === 'udl'){
+    const L = load.end - load.start;
+    return { F: load.intensity * L, x: (load.start+load.end)/2 };
+  }
+  if (load.type === 'partial-udl'){
+    const L = load.end - load.start;
+    return { F: load.intensity * L, x: (load.start+load.end)/2 };
+  }
+  if (load.type === 'uvl' || load.type === 'trapezoidal'){
+    const L = load.end - load.start;
+    const F = 0.5*(load.w1+load.w2)*L;
+    // centroid of trapezoid measured from start
+    let xc;
+    if (Math.abs(load.w1+load.w2) < 1e-12) xc = L/2;
+    else xc = L*(load.w1 + 2*load.w2) / (3*(load.w1+load.w2));
+    return { F, x: load.start + xc };
+  }
+  return { F:0, x:0 };
+}
+
+// intensity w(x) (load per length, downward positive) at position x, for distributed loads only
+function intensityAt(load, x){
+  if (load.type === 'udl'){
+    if (x < load.start - 1e-9 || x > load.end + 1e-9) return 0;
+    return load.intensity;
+  }
+  if (load.type === 'partial-udl'){
+    if (x < load.start - 1e-9 || x > load.end + 1e-9) return 0;
+    return load.intensity;
+  }
+  if (load.type === 'uvl' || load.type === 'trapezoidal'){
+    if (x < load.start - 1e-9 || x > load.end + 1e-9) return 0;
+    const L = load.end - load.start;
+    if (L <= 1e-12) return load.w1;
+    const t = (x - load.start)/L;
+    return load.w1 + (load.w2-load.w1)*t;
+  }
+  return 0;
+}
+
+/* ============================================================
+   SUPPORT REACTIONS — statics (determinate cases) via
+   ΣFy=0, ΣM=0. For indeterminate beams reactions come from the
+   slope-deflection solve (computed later) and combined here.
+   ============================================================ */
+
+function sumOfAppliedLoads(){
+  return STATE.loads.map(loadResultant);
+}
+
+function totalAppliedForce(){
+  return sumOfAppliedLoads().reduce((s,r)=>s+r.F, 0);
+}
+
+function totalAppliedMomentAbout(x0){
+  // sum of moment of all loads & applied moments about x0 (CW positive), loads downward positive
+  let M = 0;
+  for (const r of sumOfAppliedLoads()){
+    M += r.F * (r.x - x0);
+  }
+  for (const m of STATE.moments){
+    M += m.magnitude; // applied moment is position-independent contribution to ΣM
+  }
+  return M;
+}
+
+/* Determinate reaction solver for simply-supported / overhanging / cantilever beams */
+function solveDeterminateReactions(){
+  const supports = getSupportPositions(); // base m, relative to leftmost end (x=0)
+  const beamType = STATE.beamType;
+
+  if (beamType === 'cantilever'){
+    // fixed at supports[0] (=leftOverhang, normally 0), free end
+    const xFix = supports[0];
+    const totalF = totalAppliedForce();
+    // ΣFy=0: R = totalF (upward positive reaction)
+    const R = totalF;
+    // ΣM about fixed support: M_fix (reaction moment) + moments of loads = 0
+    // taking CW moment of downward load at x>xFix as... we'll define:
+    // M_react such that overall equilibrium holds. Using consistent sign convention below in engine.
+    let Mload = 0;
+    for (const r of sumOfAppliedLoads()) Mload += r.F * (r.x - xFix);
+    for (const m of STATE.moments) Mload += m.magnitude;
+    const Mfix = -Mload; // reaction moment to balance
+    return {
+      type:'cantilever',
+      reactions:[
+        { label:'R_A (Vertical)', position:xFix, value:R, kind:'force' },
+        { label:'M_A (Moment)', position:xFix, value:Mfix, kind:'moment' }
+      ]
+    };
+  }
+
+  // simply-supported / overhanging: two reactions, at supports[0] and supports[last]
+  const xA = supports[0];
+  const xB = supports[supports.length-1];
+  const span = xB - xA;
+  // ΣM about A = 0: RB*(xB-xA) - Σ F*(x-xA) - ΣMoments = 0 → RB = [ΣF*(x-xA)+ΣM] / span
+  let sumFxFromA = 0;
+  for (const r of sumOfAppliedLoads()) sumFxFromA += r.F*(r.x-xA);
+  let sumM = STATE.moments.reduce((s,m)=>s+m.magnitude,0);
+  const RB = (sumFxFromA + sumM) / span;
+  const totalF = totalAppliedForce();
+  const RA = totalF - RB;
+  return {
+    type:'simple2',
+    reactions:[
+      { label:`R_${spanNodeLabel(0)} (Vertical)`, position:xA, value:RA, kind:'force' },
+      { label:`R_${spanNodeLabel(supports.length-1)} (Vertical)`, position:xB, value:RB, kind:'force' }
+    ]
+  };
+}
+
+/* ============================================================
+   NUMERICAL SHEAR / MOMENT FIELD over the whole beam, given a
+   list of all reactions (point forces, with optional reaction
+   moments) and the user loads/moments. Computed via direct
+   superposition (exact, not approximate) sampled at N points.
+   ============================================================ */
+
+function buildPointForceList(reactions){
+  // returns array of {x, F} downward-positive equivalent point loads (reactions are upward = negative F contribution to shear convention below)
+  const pts = [];
+  for (const r of STATE.loads){
+    if (r.type === 'point') pts.push({ x:r.position, F:r.magnitude });
+  }
+  return pts;
+}
+
+function buildAppliedMomentList(){
+  return STATE.moments.map(m=>({x:m.position, M:m.magnitude}));
+}
+
+// V(x): shear just to the right of x (sum of upward reactions minus downward loads to the left of x)
+function shearAt(x, reactions){
+  let V = 0;
+  for (const re of reactions){
+    if (re.kind === 'force' && re.position <= x + 1e-9) V += re.value;
+  }
+  for (const ld of STATE.loads){
+    if (ld.type === 'point'){
+      if (ld.position <= x + 1e-9) V -= ld.magnitude;
+    } else {
+      // integrate intensity from start to min(x,end)
+      const a = ld.start, b = Math.min(ld.end, x);
+      if (b > a){
+        V -= integrateIntensity(ld, a, b);
+      }
+    }
+  }
+  return V;
+}
+
+function integrateIntensity(ld, a, b){
+  // exact integral of w(x) dx from a to b for udl/partial-udl/uvl/trapezoidal
+  if (b <= a) return 0;
+  if (ld.type === 'udl' || ld.type === 'partial-udl'){
+    return ld.intensity * (b-a);
+  }
+  if (ld.type === 'uvl' || ld.type === 'trapezoidal'){
+    const L = ld.end - ld.start;
+    if (L <= 1e-12) return 0;
+    const wa = intensityAt(ld, a), wb = intensityAt(ld, b);
+    return 0.5*(wa+wb)*(b-a);
+  }
+  return 0;
+}
+
+function integrateIntensityMomentAboutX(ld, a, b, x){
+  // ∫ w(ξ) * (x-ξ) dξ  from ξ=a to ξ=b  (exact for constant or linear w)
+  if (b <= a) return 0;
+  if (ld.type === 'udl' || ld.type === 'partial-udl'){
+    const w = ld.intensity;
+    // ∫ w (x-ξ) dξ = w[ x(b-a) - (b²-a²)/2 ]
+    return w * ( x*(b-a) - (b*b-a*a)/2 );
+  }
+  if (ld.type === 'uvl' || ld.type === 'trapezoidal'){
+    const L = ld.end-ld.start;
+    if (L<=1e-12) return 0;
+    const m = (ld.w2-ld.w1)/L; // dw/dξ
+    const c = ld.w1 - m*ld.start; // w(ξ) = m*ξ + c
+    // (mξ+c)(x-ξ) = mxξ - mξ² + cx - cξ
+    const F = (xi)=> m*x*xi*xi/2 - m*xi*xi*xi/3 + c*x*xi - c*xi*xi/2;
+    return F(b)-F(a);
+  }
+  return 0;
+}
+
+// M(x): bending moment at x via reactions + loads to the left (standard sagging-positive convention)
+function momentAt(x, reactions){
+  let M = 0;
+  for (const re of reactions){
+    if (re.kind === 'force' && re.position <= x + 1e-9) M += re.value * (x - re.position);
+    if (re.kind === 'moment' && re.position <= x + 1e-9) M += re.value;
+  }
+  for (const ld of STATE.loads){
+    if (ld.type === 'point'){
+      if (ld.position <= x + 1e-9) M -= ld.magnitude * (x - ld.position);
+    } else {
+      const a = ld.start, b = Math.min(ld.end, x);
+      if (b > a){
+        M -= integrateIntensityMomentAboutX(ld, a, b, x);
+      }
+    }
+  }
+  for (const am of STATE.moments){
+    if (am.position <= x + 1e-9) M += am.magnitude;
+  }
+  return M;
+}
+
+/* ============================================================
+   FIXED END MOMENT LIBRARY
+   Sign convention: CW on member end is positive (standard
+   slope-deflection convention). Returns {MAB, MBA} for a span
+   of length L with loads given in LOCAL span coordinates
+   (0 = A end, L = B end).
+   ============================================================ */
+const FEM = {
+  pointLoadCentral(P, L){
+    const M = P*L/8;
+    return { MAB:-M, MBA:M };
+  },
+  pointLoadEccentric(P, a, L){
+    const b = L-a;
+    const MAB = -(P*a*b*b)/(L*L);
+    const MBA = (P*a*a*b)/(L*L);
+    return { MAB, MBA };
+  },
+  udlFull(w, L){
+    const M = w*L*L/12;
+    return { MAB:-M, MBA:M };
+  },
+  udlPartial(w, a, b, L){
+    // integrate point-load eccentric FEM formula over [a,b] (exact for piecewise-constant w)
+    const n = 400;
+    const dx = (b-a)/n;
+    let MAB=0, MBA=0;
+    for (let i=0;i<n;i++){
+      const x = a + (i+0.5)*dx;
+      const P = w*dx;
+      const bb = L-x;
+      MAB += -(P*x*bb*bb)/(L*L);
+      MBA += (P*x*x*bb)/(L*L);
+    }
+    return { MAB, MBA };
+  },
+  uvlOrTrapezoidal(w1, w2, a, b, L){
+    const n = 400;
+    const dx = (b-a)/n;
+    let MAB=0, MBA=0;
+    for (let i=0;i<n;i++){
+      const x = a + (i+0.5)*dx;
+      const t = (x-a)/(b-a || 1);
+      const w = w1 + (w2-w1)*t;
+      const P = w*dx;
+      const bb = L-x;
+      MAB += -(P*x*bb*bb)/(L*L);
+      MBA += (P*x*x*bb)/(L*L);
+    }
+    return { MAB, MBA };
+  },
+  appliedMomentInSpan(Mmag, a, L){
+    // CW applied moment Mmag at distance a from A
+    const b = L-a;
+    const MAB = (Mmag*b*(2*a-b))/(L*L);
+    const MBA = (Mmag*a*(2*b-a))/(L*L);
+    return { MAB, MBA };
+  }
+};
+
+function computeFEMForSpan(spanStartX, spanEndX, EIspan, L){
+  let MAB = 0, MBA = 0;
+  for (const ld of STATE.loads){
+    if (ld.type === 'point'){
+      if (ld.position >= spanStartX-1e-9 && ld.position <= spanEndX+1e-9){
+        const a = ld.position - spanStartX;
+        if (Math.abs(a-L/2) < 1e-6){
+          const r = FEM.pointLoadCentral(ld.magnitude, L);
+          MAB += r.MAB; MBA += r.MBA;
+        } else {
+          const r = FEM.pointLoadEccentric(ld.magnitude, a, L);
+          MAB += r.MAB; MBA += r.MBA;
+        }
+      }
+    } else if (ld.type === 'udl'){
+      const s = Math.max(ld.start, spanStartX), e = Math.min(ld.end, spanEndX);
+      if (e > s){
+        if (Math.abs(s-spanStartX)<1e-6 && Math.abs(e-spanEndX)<1e-6){
+          const r = FEM.udlFull(ld.intensity, L);
+          MAB += r.MAB; MBA += r.MBA;
+        } else {
+          const r = FEM.udlPartial(ld.intensity, s-spanStartX, e-spanStartX, L);
+          MAB += r.MAB; MBA += r.MBA;
+        }
+      }
+    } else if (ld.type === 'partial-udl'){
+      const s = Math.max(ld.start, spanStartX), e = Math.min(ld.end, spanEndX);
+      if (e > s){
+        const r = FEM.udlPartial(ld.intensity, s-spanStartX, e-spanStartX, L);
+        MAB += r.MAB; MBA += r.MBA;
+      }
+    } else if (ld.type === 'uvl' || ld.type === 'trapezoidal'){
+      const s = Math.max(ld.start, spanStartX), e = Math.min(ld.end, spanEndX);
+      if (e > s){
+        // interpolate w1,w2 to clipped sub-range
+        const Lfull = ld.end-ld.start;
+        const t1 = Lfull>1e-12 ? (s-ld.start)/Lfull : 0;
+        const t2 = Lfull>1e-12 ? (e-ld.start)/Lfull : 1;
+        const ws = ld.w1 + (ld.w2-ld.w1)*t1;
+        const we = ld.w1 + (ld.w2-ld.w1)*t2;
+        const r = FEM.uvlOrTrapezoidal(ws, we, s-spanStartX, e-spanStartX, L);
+        MAB += r.MAB; MBA += r.MBA;
+      }
+    }
+  }
+  for (const am of STATE.moments){
+    if (am.position >= spanStartX-1e-9 && am.position <= spanEndX+1e-9){
+      const a = am.position - spanStartX;
+      const r = FEM.appliedMomentInSpan(am.magnitude, a, L);
+      MAB += r.MAB; MBA += r.MBA;
+    }
+  }
+  return { MAB, MBA };
+}
+
+/* ============================================================
+   SLOPE-DEFLECTION SOLVER for fixed / propped-cantilever / continuous
+   Builds joint equilibrium equations and solves for unknown
+   rotations θ via Gaussian elimination, then derives end moments
+   and reactions.
+   ============================================================ */
+// Statically reduce every load/moment on a free overhang segment [loSegX, hiSegX] to an
+// equivalent point force + moment carried back to supportX. Used for BOTH left and right
+// overhangs. Returns {extraForce, extraMoment} where extraForce is the downward-positive
+// resultant and extraMoment is the CW-positive moment of that resultant about supportX
+// (matching the reaction-moment sign convention used by the joint-equilibrium assembly below).
+function reduceOverhangToJoint(loSegX, hiSegX, supportX){
+  let extraForce = 0, extraMoment = 0;
+  for (const ld of STATE.loads){
+    if (ld.type === 'point'){
+      if (ld.position >= loSegX-1e-9 && ld.position <= hiSegX+1e-9){
+        extraForce += ld.magnitude;
+        extraMoment += ld.magnitude*(ld.position-supportX);
+      }
+    } else {
+      const s = Math.max(ld.start, loSegX), e = Math.min(ld.end, hiSegX);
+      if (e > s){
+        extraForce += integrateIntensity(ld, s, e);
+        extraMoment += integrateIntensityMomentAboutX(ld, s, e, supportX) * -1; // CW+ convention
+      }
+    }
+  }
+  for (const am of STATE.moments){
+    if (am.position >= loSegX-1e-9 && am.position <= hiSegX+1e-9){
+      extraMoment += am.magnitude;
+    }
+  }
+  return { extraForce, extraMoment };
+}
+
+function solveSlopeDeflection(){
+  let supportPositions = getSupportPositions(); // node x-coords
+  let nNodes = supportPositions.length;
+  let supportTypesRaw = [];
+  for (let i=0;i<nNodes;i++) supportTypesRaw.push(supportTypeFor(STATE.beamType, i, nNodes));
+
+  // A free overhang tip can exist at EITHER end (or both): a right-side free tip from a
+  // cantilever whose last prop isn't the final node, OR an 'overhanging' beam with a
+  // nonzero leftOverhang / rightOverhang beyond its first/last real pin-or-roller support.
+  // Each present overhang's loads are statically reduced to an equivalent point force +
+  // moment carried back to the adjoining REAL support node, then the remaining (fully
+  // supported, prop-to-prop) portion of the beam is solved with ordinary slope-deflection.
+  const hasRightFreeTip = (supportTypesRaw[nNodes-1] === 'free');
+  const hasLeftOverhangTip = (STATE.beamType === 'overhanging' && STATE.leftOverhang > 1e-9);
+  const hasRightOverhangTip = (STATE.beamType === 'overhanging' && STATE.rightOverhang > 1e-9);
+
+  let leftCorrection = null;  // {firstSupportIdx, firstSupportX, freeTipX, extraForce, extraMoment}
+  let rightCorrection = null; // {lastSupportIdx,  lastSupportX,  freeTipX, extraForce, extraMoment}
+  let solveSpanLengths = STATE.spanLengths.slice();
+  let solveEIs = STATE.EI.slice();
+
+  // RIGHT side reduction (cantilever-style free tip OR overhanging beam's right overhang)
+  if ((hasRightFreeTip || hasRightOverhangTip) && nNodes >= 2){
+    const lastSupportIdx = hasRightFreeTip ? nNodes-2 : nNodes-1; // last REAL support node
+    const lastSupportX = supportPositions[lastSupportIdx];
+    const freeTipX = hasRightFreeTip ? supportPositions[nNodes-1] : getTotalLength();
+    const { extraForce, extraMoment } = reduceOverhangToJoint(lastSupportX, freeTipX, lastSupportX);
+    rightCorrection = { lastSupportIdx, lastSupportX, freeTipX, extraForce, extraMoment };
+  }
+
+  // LEFT side reduction (overhanging beam's left overhang — the first real support is
+  // node 0 in the topology array, with the physical free tip at x=0 .. STATE.leftOverhang)
+  if (hasLeftOverhangTip){
+    const firstSupportIdx = 0;
+    const firstSupportX = supportPositions[0];
+    const freeTipX = 0;
+    const { extraForce, extraMoment } = reduceOverhangToJoint(freeTipX, firstSupportX, firstSupportX);
+    leftCorrection = { firstSupportIdx, firstSupportX, freeTipX, extraForce, extraMoment };
+  }
+
+  // Truncate the solve domain to just the real prop-to-prop portion. supportPositions /
+  // spanLengths / EIs here only ever describe REAL support nodes already (overhang length
+  // is geometry added on top by getSupportPositions / getTotalLength, not extra nodes —
+  // except in the cantilever-free-tip case where the free tip IS an extra trailing node
+  // that must be dropped).
+  if (hasRightFreeTip){
+    solveSpanLengths = solveSpanLengths.slice(0, nNodes-2);
+    solveEIs = solveEIs.slice(0, nNodes-2);
+    supportPositions = supportPositions.slice(0, nNodes-1);
+    nNodes = nNodes - 1;
+  }
+
+  const nSpans = nNodes - 1;
+  const spanLengths = solveSpanLengths;
+  const EIs = solveEIs;
+
+  // IMPORTANT: do NOT re-derive support types from scratch against the truncated node
+  // count. supportTypeFor() always labels the last index of whatever totalSupports it's
+  // given as the cantilever's free tip — but after truncation the "last" node is actually
+  // the real prop adjoining the (already-removed) free tip, not a free end itself. Re-running
+  // the classifier here would wrongly re-flag that real support as 'free', corrupting the
+  // structural topology downstream (fixed-end-moment lookups, joint equilibrium assembly).
+  // Instead, slice the ORIGINAL (pre-truncation) classifications, which already correctly
+  // distinguish real props from the dropped tip node.
+  const supportTypes = supportTypesRaw.slice(0, nNodes);
+
+  // settlement (base m) per node, default 0
+  const settle = [];
+  for (let i=0;i<nNodes;i++) settle.push(STATE.settlements[i] || 0);
+
+  // FEM per span (local AB, BA)
+  const spanFEM = [];
+  for (let i=0;i<nSpans;i++){
+    const sx = supportPositions[i], ex = supportPositions[i+1];
+    spanFEM.push(computeFEMForSpan(sx, ex, EIs[i], spanLengths[i]));
+  }
+
+  // psi (chord rotation) per span = (settle[i+1]-settle[i]) / L , used as Δ/L term
+  const psi = [];
+  for (let i=0;i<nSpans;i++){
+    psi.push( (settle[i+1]-settle[i]) / spanLengths[i] );
+  }
+
+  // unknowns: θ at each node where rotation is free (pin, roller, or free-continuous interior).
+  // fixed supports => θ=0 (not unknown). Free end (cantilever) handled separately (no slope-deflection needed there).
+  const isFree = supportTypes.map(t=> t!=='fixed');
+  const unknownIdx = {}; // node index -> unknown slot
+  let cnt = 0;
+  for (let i=0;i<nNodes;i++){ if (isFree[i]){ unknownIdx[i]=cnt++; } }
+  const nUnknown = cnt;
+
+  // Member end moment as function of theta vector:
+  // MAB = FEM_AB + (2EI/L)(2θA + θB - 3ψ)
+  // MBA = FEM_BA + (2EI/L)(2θB + θA - 3ψ)
+  // Build joint equilibrium: for each free interior/end joint j (not fixed), sum of member-end moments at j = 0 (external moment loads, if directly AT a joint, also included; we assume applied moments are within spans, handled via FEM already if exactly at node it's edge case treated as within adjoining span by clamping).
+
+  // Assemble linear system A*theta = b for unknown thetas.
+  const A = Array.from({length:nUnknown}, ()=> Array(nUnknown).fill(0));
+  const b = Array(nUnknown).fill(0);
+
+  function addMemberContribution(node, spanIdx, isAEnd){
+    // returns coefficient row contributions of theta_A, theta_B for this member's moment at 'node', plus constant
+    const L = spanLengths[spanIdx];
+    const EI = EIs[spanIdx];
+    const k = 2*EI/L;
+    const nodeA = spanIdx, nodeB = spanIdx+1;
+    const FEMab = spanFEM[spanIdx].MAB, FEMba = spanFEM[spanIdx].MBA;
+    const psiSpan = psi[spanIdx];
+    if (isAEnd){
+      // M_AB = FEMab + k(2 thetaA + thetaB - 3 psi)
+      return { FEM:FEMab, k2: k*2, k1: k*1, constPsi: -3*k*psiSpan, thetaNodeSelf:nodeA, thetaNodeOther:nodeB };
+    } else {
+      // M_BA = FEMba + k(2 thetaB + thetaA - 3 psi)
+      return { FEM:FEMba, k2: k*2, k1: k*1, constPsi: -3*k*psiSpan, thetaNodeSelf:nodeB, thetaNodeOther:nodeA };
+    }
+  }
+
+  for (let j=0;j<nNodes;j++){
+    if (!isFree[j]) continue; // fixed: theta=0, no equilibrium eq needed (reaction moment absorbs it)
+    const row = unknownIdx[j];
+    let constSum = 0;
+    // members connected to joint j: span (j-1,j) as B-end if j>0 ; span (j,j+1) as A-end if j<nSpans
+    if (j-1 >= 0){
+      const spanIdx = j-1;
+      const c = addMemberContribution(j, spanIdx, false);
+      constSum += c.FEM + c.constPsi;
+      A[row][unknownIdx[c.thetaNodeSelf]] += c.k2;
+      if (isFree[c.thetaNodeOther]) A[row][unknownIdx[c.thetaNodeOther]] += c.k1;
+      // if other end fixed, theta=0 contributes nothing extra
+    }
+    if (j < nSpans){
+      const spanIdx = j;
+      const c = addMemberContribution(j, spanIdx, true);
+      constSum += c.FEM + c.constPsi;
+      A[row][unknownIdx[c.thetaNodeSelf]] += c.k2;
+      if (isFree[c.thetaNodeOther]) A[row][unknownIdx[c.thetaNodeOther]] += c.k1;
+    }
+    // joint equilibrium: sum of member end moments = external moment applied directly at this joint
+    // (zero for ordinary interior joints; nonzero if a free overhang's loads were reduced
+    //  to an equivalent moment carried back to this support, from either end)
+    let externalJointMoment = 0;
+    if (rightCorrection && j === rightCorrection.lastSupportIdx){
+      externalJointMoment += rightCorrection.extraMoment;
+    }
+    if (leftCorrection && j === leftCorrection.firstSupportIdx){
+      externalJointMoment += leftCorrection.extraMoment;
+    }
+    b[row] = externalJointMoment - constSum;
+  }
+
+  const thetaUnknowns = gaussianSolve(A, b);
+  const theta = Array(nNodes).fill(0);
+  for (let i=0;i<nNodes;i++){ if (isFree[i]) theta[i] = thetaUnknowns[unknownIdx[i]]; }
+
+  // compute end moments per span
+  const endMoments = []; // {MAB, MBA} actual (incl FEM + slope-deflection terms)
+  for (let i=0;i<nSpans;i++){
+    const L = spanLengths[i], EI = EIs[i], k = 2*EI/L;
+    const MAB = spanFEM[i].MAB + k*(2*theta[i]+theta[i+1]-3*psi[i]);
+    const MBA = spanFEM[i].MBA + k*(2*theta[i+1]+theta[i]-3*psi[i]);
+    endMoments.push({MAB, MBA});
+  }
+
+  // Support moments at each node = sum of adjoining member end-moments (should be ~0 at free joints, nonzero at fixed)
+  const supportMoment = Array(nNodes).fill(0);
+  for (let i=0;i<nSpans;i++){
+    supportMoment[i] += endMoments[i].MAB;
+    supportMoment[i+1] += endMoments[i].MBA;
+  }
+
+  // Vertical reactions: for each span treat as simply-supported with FEM-released end moments superimposed,
+  // i.e. reaction at node = simple-beam reaction (from loads only) + correction from end moments difference / L
+  const nodeReaction = Array(nNodes).fill(0);
+  for (let i=0;i<nSpans;i++){
+    const sx = supportPositions[i], ex = supportPositions[i+1];
+    const L = spanLengths[i];
+    // simple beam reactions from loads in this span only
+    let RA_simple = 0, RB_simple = 0;
+    for (const ld of STATE.loads){
+      if (ld.type==='point'){
+        if (ld.position>=sx-1e-9 && ld.position<=ex+1e-9){
+          const a = ld.position-sx, bb = L-a;
+          RA_simple += ld.magnitude*bb/L;
+          RB_simple += ld.magnitude*a/L;
+        }
+      } else {
+        const s = Math.max(ld.start,sx), e = Math.min(ld.end,ex);
+        if (e>s){
+          const n=300, dx=(e-s)/n;
+          for (let k2=0;k2<n;k2++){
+            const x = s+(k2+0.5)*dx;
+            const w = intensityAt(ld,x);
+            const P = w*dx;
+            const a = x-sx, bb = L-a;
+            RA_simple += P*bb/L;
+            RB_simple += P*a/L;
+          }
+        }
+      }
+    }
+    for (const am of STATE.moments){
+      if (am.position>=sx-1e-9 && am.position<=ex+1e-9){
+        // a CW moment M at distance a from A induces simple-beam reactions M/L (down at A side correction)
+        RA_simple += -am.magnitude/L;
+        RB_simple += am.magnitude/L;
+      }
+    }
+    // moment correction: additional reaction couple from end moments (MAB at A, MBA at B), sagging-positive convention used here is engineering CW-positive on member end;
+    // correction = (MAB + MBA)/L acting to adjust reactions (standard slope-deflection reaction back-substitution)
+    const corr = (endMoments[i].MAB + endMoments[i].MBA)/L;
+    const RA = RA_simple - corr;
+    const RB = RB_simple + corr;
+    nodeReaction[i] += RA;
+    nodeReaction[i+1] += RB;
+  }
+
+  // fold each overhang's transferred force into its adjoining real support's reaction
+  if (rightCorrection){
+    nodeReaction[rightCorrection.lastSupportIdx] += rightCorrection.extraForce;
+  }
+  if (leftCorrection){
+    nodeReaction[leftCorrection.firstSupportIdx] += leftCorrection.extraForce;
+  }
+
+  const reactions = [];
+  for (let i=0;i<nNodes;i++){
+    reactions.push({ label:`R_${spanNodeLabel(i)} (Vertical)`, position:supportPositions[i], value:nodeReaction[i], kind:'force' });
+    if (!isFree[i]){
+      reactions.push({ label:`M_${spanNodeLabel(i)} (Moment)`, position:supportPositions[i], value:supportMoment[i], kind:'moment' });
+    }
+  }
+  // re-append/prepend free-tip nodes (zero net reaction there — their loads were already
+  // folded into the adjoining real support above) for labeling/diagram completeness.
+  let fullSupportPositions = supportPositions;
+  let fullNodeReaction = nodeReaction;
+  if (leftCorrection){
+    fullSupportPositions = [leftCorrection.freeTipX].concat(fullSupportPositions);
+    fullNodeReaction = [0].concat(fullNodeReaction);
+    reactions.push({ label:`R_Tip(L) (Free Tip)`, position:leftCorrection.freeTipX, value:0, kind:'force' });
+  }
+  if (rightCorrection){
+    fullSupportPositions = fullSupportPositions.concat([rightCorrection.freeTipX]);
+    fullNodeReaction = fullNodeReaction.concat([0]);
+    reactions.push({ label:`R_Tip(R) (Free Tip)`, position:rightCorrection.freeTipX, value:0, kind:'force' });
+  }
+
+  return { reactions, theta, endMoments, spanFEM, psi, supportPositions:fullSupportPositions, nodeReaction:fullNodeReaction, supportMoment, leftCorrection, rightCorrection };
+}
+
+/* Gaussian elimination with partial pivoting */
+function gaussianSolve(Ain, bin){
+  const n = bin.length;
+  if (n===0) return [];
+  const A = Ain.map(r=>r.slice());
+  const b = bin.slice();
+  // Establish ONE global reference scale from the original (pre-elimination) matrix.
+  // A per-row norm taken *during* elimination shrinks as rows get reduced, which both
+  // (a) false-positives on legitimate systems mixing a very short/flexible span next to a
+  // long/rigid one (the reduced row norm collapses faster than the true pivot does), and
+  // (b) lets a genuinely singular system (e.g. a zero-stiffness element) slip through if its
+  // local row norm happens to still look "large enough" at that step. Anchoring the
+  // tolerance to the matrix's original overall magnitude — i.e. effectively scaling by the
+  // structural EI/L coefficients that built it — avoids both failure modes.
+  let globalNorm = 0;
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) globalNorm = Math.max(globalNorm, Math.abs(A[r][c]));
+  if (globalNorm === 0) globalNorm = 1;
+  const SINGULARITY_TOL = 1e-10;
+  for (let i=0;i<n;i++){
+    let maxRow = i;
+    for (let k=i+1;k<n;k++) if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+    [A[i],A[maxRow]] = [A[maxRow],A[i]];
+    [b[i],b[maxRow]] = [b[maxRow],b[i]];
+    const pivotThreshold = globalNorm * SINGULARITY_TOL;
+    if (Math.abs(A[i][i]) < pivotThreshold){
+      // Matrix is effectively singular — structural system is ill-conditioned or degenerate
+      console.error('gaussianSolve: singular or ill-conditioned matrix at step', i, '— check span EI ratios and support configuration.');
+      alert('Numerical error: the stiffness matrix is singular or ill-conditioned. This can occur with extreme differences in span rigidity (EI). Please verify your input values and try again.');
+      return Array(n).fill(0);
+    }
+    const piv = A[i][i];
+    for (let k=i+1;k<n;k++){
+      const f = A[k][i]/piv;
+      for (let j=i;j<n;j++) A[k][j] -= f*A[i][j];
+      b[k] -= f*b[i];
+    }
+  }
+  const x = Array(n).fill(0);
+  for (let i=n-1;i>=0;i--){
+    let s = b[i];
+    for (let j=i+1;j<n;j++) s -= A[i][j]*x[j];
+    x[i] = Math.abs(A[i][i]) < globalNorm * SINGULARITY_TOL ? 0 : s / A[i][i];
+  }
+  return x;
+}
+
+/* ============================================================
+   MAIN ANALYSIS ORCHESTRATOR
+   ============================================================ */
+function isIndeterminate(beamType, numSpans){
+  // inherently indeterminate base types
+  if (beamType === 'fixed' || beamType === 'propped-cantilever' || beamType === 'continuous') return true;
+  // simply-supported / overhanging / cantilever become indeterminate the moment
+  // an extra intermediate support (prop) is added, i.e. more than 1 span
+  if ((beamType === 'simply-supported' || beamType === 'overhanging' || beamType === 'cantilever') && numSpans > 1) return true;
+  return false;
+}
+
+function runFullAnalysis(){
+  syncSpanLengthsFromInputs();
+  syncEI();
+  syncLoadsFromCards();
+  syncMomentsFromCards();
+  syncSettlements();
+  syncSelfWeight();
+
+  if (!STATE.spanLengths.length || STATE.spanLengths.some(L=>!isFinite(L) || L<=0)){
+    alert('Please provide valid positive span lengths (each span must be greater than zero).');
+    return null;
+  }
+  if (STATE.leftOverhang < 0 || STATE.rightOverhang < 0 || !isFinite(STATE.leftOverhang) || !isFinite(STATE.rightOverhang)){
+    alert('Overhang lengths cannot be negative.');
+    return null;
+  }
+
+  const totalLenCheck = getTotalLength();
+  const posTol = 1e-6;
+  for (const ld of STATE.loads){
+    if (ld.type === 'point'){
+      if (ld.position < -posTol || ld.position > totalLenCheck + posTol){
+        alert(`A point load at x=${fmt(ld.position,3)} m falls outside the beam (0 to ${fmt(totalLenCheck,3)} m). Please correct its position before running the analysis.`);
+        return null;
+      }
+    } else {
+      if (ld.start < -posTol || ld.end > totalLenCheck + posTol || ld.end < ld.start){
+        alert(`A distributed load from x=${fmt(ld.start,3)} m to x=${fmt(ld.end,3)} m falls outside the beam (0 to ${fmt(totalLenCheck,3)} m) or has an invalid range. Please correct it before running the analysis.`);
+        return null;
+      }
+    }
+  }
+  for (const am of STATE.moments){
+    if (am.position < -posTol || am.position > totalLenCheck + posTol){
+      alert(`An applied moment at x=${fmt(am.position,3)} m falls outside the beam (0 to ${fmt(totalLenCheck,3)} m). Please correct its position before running the analysis.`);
+      return null;
+    }
+  }
+
+  // Real-World Analysis Mode: fold self-weight in as a full-span UDL for this analysis run only
+  // (the user's explicit load list in the UI is left untouched).
+  const userLoads = STATE.loads;
+  let selfWeightLoad = null;
+  if (STATE.analysisMode === 'realworld' && STATE.selfWeightIntensity > 0){
+    selfWeightLoad = { id:'__selfweight__', type:'udl', intensity: STATE.selfWeightIntensity, start: getBeamStart(), end: getBeamEnd(), rawMag: fromBase(STATE.selfWeightIntensity,'kN/m',UNITS.distForce), rawUnit:'kN/m', isSelfWeight:true };
+    STATE.loads = userLoads.concat([selfWeightLoad]);
+  }
+
+  const beamType = STATE.beamType;
+  let reactions, sdResult = null;
+
+  if (isIndeterminate(beamType, STATE.numSpans)){
+    sdResult = solveSlopeDeflection();
+    reactions = sdResult.reactions;
+  } else {
+    const det = solveDeterminateReactions();
+    reactions = det.reactions;
+  }
+
+  const totalLen = getTotalLength();
+  const N = Math.max(600, STATE.spanLengths.length*500);
+  const xs = [];
+  for (let i=0;i<=N;i++) xs.push(totalLen*i/N);
+  // ensure exact sample at every critical x (supports, load start/end, moment positions)
+  const critXs = new Set();
+  getSupportPositions().forEach(p=>critXs.add(round6(p)));
+  STATE.loads.forEach(l=>{
+    if (l.type==='point') critXs.add(round6(l.position));
+    else { critXs.add(round6(l.start)); critXs.add(round6(l.end)); }
+  });
+  STATE.moments.forEach(m=>critXs.add(round6(m.position)));
+  critXs.add(0); critXs.add(round6(totalLen));
+  const xsSet = new Set(xs.map(round6));
+  critXs.forEach(cx=>{
+    if (!xsSet.has(cx) && cx>=0 && cx<=totalLen){ xs.push(cx); }
+  });
+  xs.sort((a,b)=>a-b);
+
+  // build shear/moment using reactions; for moments, evaluate just left & right of jump for applied moment locations
+  const V = xs.map(x=> shearAt(x+1e-7, reactions));
+  const M = xs.map(x=> momentAt(x, reactions));
+
+  // EI(x) lookup
+  const supportPositions = getSupportPositions();
+  function EIatX(x){
+    for (let i=0;i<STATE.spanLengths.length;i++){
+      if (x <= supportPositions[i+1] + 1e-7) return STATE.EI[i];
+    }
+    return STATE.EI[STATE.EI.length-1];
+  }
+
+  // slope and deflection by numerical integration (trapezoidal, fine grid) of M/EI, then M/EI again,
+  // then apply boundary conditions per span (continuity automatically satisfied since we integrate continuously
+  // and add per-span integration constants solved from compatibility — implemented via global BC solve below).
+  const n = xs.length;
+  const curvature = xs.map((x,i)=> M[i] / EIatX(x));
+
+  // integrate curvature -> raw slope (no constant), and raw slope -> raw deflection (no constants)
+  const rawSlope = Array(n).fill(0);
+  for (let i=1;i<n;i++){
+    const dx = xs[i]-xs[i-1];
+    rawSlope[i] = rawSlope[i-1] + 0.5*(curvature[i]+curvature[i-1])*dx;
+  }
+  const rawDefl = Array(n).fill(0);
+  for (let i=1;i<n;i++){
+    const dx = xs[i]-xs[i-1];
+    rawDefl[i] = rawDefl[i-1] + 0.5*(rawSlope[i]+rawSlope[i-1])*dx;
+  }
+
+  // Now apply true boundary/compatibility conditions: deflection = settlement at every support (& slope=0 at fixed),
+  // free deflection = rawDefl + C1*x + C2 (globally, since EI(d2y/dx2)=M is integrated as one continuous beam
+  // when supports impose y=given at specific x's, plus slope=0 at fixed supports as extra constraints handled by solving for true
+  // theta at those fixed ends via secondary correction). For determinate/simple cases two conditions (y=0 at two supports) fix C1,C2.
+  // For beams with more supports than 2 (continuous), compatibility was already enforced via slope-deflection upstream, so the
+  // M(x) used here already reflects the true redundant moments; we still need 2 global constants from any two zero-deflection points.
+
+  const supports = getSupportPositions();
+  const settlementArr = supports.map((_,i)=> STATE.settlements[i] || 0);
+
+  let C1=0, C2=0;
+  if (beamType === 'cantilever'){
+    // fixed at supports[0]: slope=0 and deflection=0 there
+    const idx = nearestIndex(xs, supports[0]);
+    C1 = -rawSlope[idx];
+    C2 = -(rawDefl[idx] + C1*xs[idx]);
+  } else {
+    // pick first and last support as the two zero/settlement conditions
+    const xA = supports[0], xB = supports[supports.length-1];
+    const yA_target = settlementArr[0];
+    const yB_target = settlementArr[settlementArr.length-1];
+    const iA = nearestIndex(xs, xA), iB = nearestIndex(xs, xB);
+    // rawDefl(iA)+C1*xA+C2 = yA_target ; rawDefl(iB)+C1*xB+C2=yB_target
+    const denom = (xB-xA);
+    C1 = denom!==0 ? ( (yB_target-yA_target) - (rawDefl[iB]-rawDefl[iA]) ) / denom : 0;
+    C2 = yA_target - rawDefl[iA] - C1*xA;
+  }
+
+  const slope = rawSlope.map(s=> s + C1);
+  const defl = rawDefl.map((d,i)=> d + C1*xs[i] + C2);
+
+  // For fixed beam / propped cantilever with a fixed end at an INTERMEDIATE-from-list support not index0,
+  // (not applicable here since fixed end is always index0 in our topology), skip extra handling.
+
+  // joint rotations (theta) at supports — from slope-deflection result if available, else from numeric slope
+  let jointRotations = [];
+  if (sdResult){
+    jointRotations = sdResult.theta.map((t,i)=>({ node: spanNodeLabel(i), value:t }));
+  } else {
+    jointRotations = supports.map((sx,i)=>({ node: spanNodeLabel(i), value: slope[nearestIndex(xs,sx)] }));
+  }
+
+  // critical values
+  function extremum(arr, cmp){
+    let bi=0;
+    for (let i=1;i<arr.length;i++) if (cmp(arr[i],arr[bi])) bi=i;
+    return { value:arr[bi], position:xs[bi], index:bi };
+  }
+  const Vmax = extremum(V,(a,b)=>a>b);
+  const Vmin = extremum(V,(a,b)=>a<b);
+  const Mmax = extremum(M,(a,b)=>a>b);
+  const Mmin = extremum(M,(a,b)=>a<b);
+  const Dmax = extremum(defl,(a,b)=>a>b);
+  const Dmin = extremum(defl,(a,b)=>a<b);
+  const Smax = extremum(slope,(a,b)=>a>b);
+  const Smin = extremum(slope,(a,b)=>a<b);
+
+  // zero shear locations (sign changes)
+  const zeroShear = [];
+  for (let i=1;i<n;i++){
+    if ((V[i-1]>0 && V[i]<0) || (V[i-1]<0 && V[i]>0)){
+      const t = V[i-1]/(V[i-1]-V[i]);
+      zeroShear.push(xs[i-1] + t*(xs[i]-xs[i-1]));
+    } else if (Math.abs(V[i])<1e-6 && Math.abs(V[i-1])>1e-6) {
+      zeroShear.push(xs[i]);
+    }
+  }
+  // contraflexure points (M sign changes)
+  const contraflexure = [];
+  for (let i=1;i<n;i++){
+    if ((M[i-1]>1e-9 && M[i]<-1e-9) || (M[i-1]<-1e-9 && M[i]>1e-9)){
+      const t = M[i-1]/(M[i-1]-M[i]);
+      contraflexure.push(xs[i-1] + t*(xs[i]-xs[i-1]));
+    }
+  }
+
+  const result = {
+    beamType, reactions, sdResult,
+    xs, V, M, slope, defl,
+    Vmax, Vmin, Mmax, Mmin, Dmax, Dmin, Smax, Smin,
+    zeroShear, contraflexure, jointRotations,
+    supports, totalLen, EIatX,
+    selfWeightApplied: !!selfWeightLoad
+  };
+  STATE.result = result;
+  STATE.loads = userLoads; // restore the user's explicit load list (self-weight was only added for this solve)
+  return result;
+}
+
+function round6(x){ return Math.round(x*1e6)/1e6; }
+function nearestIndex(xs, target){
+  let bi=0, bd=Infinity;
+  for (let i=0;i<xs.length;i++){ const d=Math.abs(xs[i]-target); if (d<bd){bd=d;bi=i;} }
+  return bi;
+}
+
+/* ============================================================
+   SVG DIAGRAM RENDERING
+   ============================================================ */
+const SVG_W = 1000, SVG_H = 500;
+const SVG_MARGIN = { left:60, right:40, top:50, bottom:60 };
+
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function clearSVG(id){
+  const svg = document.getElementById(id);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  return svg;
+}
+
+function xScale(x, totalLen){
+  const w = SVG_W - SVG_MARGIN.left - SVG_MARGIN.right;
+  return SVG_MARGIN.left + (x/totalLen)*w;
+}
+
+function renderAllDiagrams(){
+  const emptyState = document.getElementById('emptyState');
+  const stack = document.getElementById('diagramStack');
+  const result = STATE.result;
+
+  if (!result){
+    emptyState.style.display = 'flex';
+    stack.style.display = 'none';
+    return;
+  }
+  emptyState.style.display = 'none';
+  stack.style.display = 'flex';
+
+  renderBeamDiagram(clearSVG('diagramSVG-beam'), result);
+  renderFieldDiagram(clearSVG('diagramSVG-sfd'), result, result.V, 'Shear Force (V)', 'kN', UNITS.force.kN, result.zeroShear, result.Vmax, result.Vmin);
+  renderFieldDiagram(clearSVG('diagramSVG-bmd'), result, result.M, 'Bending Moment (M)', 'kN·m', UNITS.moment['kN·m'], result.contraflexure, result.Mmax, result.Mmin);
+  renderFieldDiagram(clearSVG('diagramSVG-slope'), result, result.slope, 'Slope (θ)', 'rad', 1, [], result.Smax, result.Smin);
+  renderFieldDiagram(clearSVG('diagramSVG-deflection'), result, result.defl, 'Deflection (y)', 'mm', 0.001, [], result.Dmax, result.Dmin);
+}
+
+function renderBeamDiagram(svg, result){
+  const totalLen = result.totalLen;
+  const yBeam = 230;
+  svg.appendChild(svgEl('line', { x1:xScale(0,totalLen), x2:xScale(totalLen,totalLen), y1:yBeam, y2:yBeam, class:'beam-line' }));
+
+  // supports
+  const supports = result.supports;
+  const types = supports.map((_,i)=> supportTypeFor(STATE.beamType, i, supports.length));
+  supports.forEach((sx,i)=>{
+    const cx = xScale(sx, totalLen);
+    const type = types[i];
+    if (type === 'fixed'){
+      svg.appendChild(svgEl('rect', { x:cx-6, y:yBeam-30, width:12, height:60, class:'support-fixed', rx:2 }));
+      for (let h=-26; h<=26; h+=8){
+        svg.appendChild(svgEl('line', {x1:cx-6,y1:yBeam+h,x2:cx-14,y2:yBeam+h+6, stroke:'var(--text-2)', 'stroke-width':1.5}));
+      }
+    } else if (type === 'pin'){
+      svg.appendChild(svgEl('polygon', { points:`${cx-14},${yBeam+22} ${cx+14},${yBeam+22} ${cx},${yBeam}`, class:'support-tri' }));
+      hatchGround(svg, cx, yBeam+22);
+    } else if (type === 'roller'){
+      svg.appendChild(svgEl('polygon', { points:`${cx-14},${yBeam+18} ${cx+14},${yBeam+18} ${cx},${yBeam}`, class:'support-tri' }));
+      svg.appendChild(svgEl('circle', { cx:cx-7, cy:yBeam+23, r:4, class:'support-tri' }));
+      svg.appendChild(svgEl('circle', { cx:cx+7, cy:yBeam+23, r:4, class:'support-tri' }));
+      hatchGround(svg, cx, yBeam+27);
+    }
+    svg.appendChild(svgEl('text', { x:cx, y:yBeam+48, 'text-anchor':'middle', class:'label-text' })).textContent = spanNodeLabel(i);
+  });
+
+  // point loads (arrows)
+  STATE.loads.forEach(ld=>{
+    if (ld.type === 'point'){
+      const cx = xScale(ld.position, totalLen);
+      svg.appendChild(svgEl('line', { x1:cx, y1:yBeam-55, x2:cx, y2:yBeam-4, class:'load-arrow', 'marker-end':'url(#arrowhead)' }));
+      const t = svgEl('text', { x:cx, y:yBeam-62, 'text-anchor':'middle', class:'value-text' });
+      t.textContent = `${fmt(ld.rawMag)} ${ld.rawUnit}`;
+      svg.appendChild(t);
+    } else {
+      const x1 = xScale(ld.start, totalLen), x2 = xScale(ld.end, totalLen);
+      const h1 = ld.type==='udl'||ld.type==='partial-udl' ? 36 : Math.max(10, 36*(ld.w1/(Math.max(ld.w1,ld.w2)||1)));
+      const h2 = ld.type==='udl'||ld.type==='partial-udl' ? 36 : Math.max(10, 36*(ld.w2/(Math.max(ld.w1,ld.w2)||1)));
+      const top1 = yBeam-6-h1, top2 = yBeam-6-h2;
+      svg.appendChild(svgEl('polygon', { points:`${x1},${top1} ${x2},${top2} ${x2},${yBeam-4} ${x1},${yBeam-4}`, class:'udl-fill' }));
+      const arrowCount = Math.max(3, Math.round((x2-x1)/30));
+      for (let k=0;k<=arrowCount;k++){
+        const t = k/arrowCount;
+        const ax = x1 + (x2-x1)*t;
+        const ay = top1 + (top2-top1)*t;
+        svg.appendChild(svgEl('line', { x1:ax, y1:ay, x2:ax, y2:yBeam-5, class:'load-arrow', 'stroke-width':1.5, 'marker-end':'url(#arrowheadsmall)' }));
+      }
+      const label = ld.type==='uvl'||ld.type==='trapezoidal' ? `${fmt(ld.rawW1)}–${fmt(ld.rawW2)} ${ld.rawUnit}` : `${fmt(ld.rawMag)} ${ld.rawUnit}`;
+      const lt = svgEl('text', { x:(x1+x2)/2, y:Math.min(top1,top2)-8, 'text-anchor':'middle', class:'value-text' });
+      lt.textContent = label;
+      svg.appendChild(lt);
+    }
+  });
+
+  // applied moments (arcs)
+  STATE.moments.forEach(m=>{
+    const cx = xScale(m.position, totalLen);
+    const r = 22;
+    const cw = m.dir === 'cw';
+    const path = cw
+      ? `M ${cx-r},${yBeam-20} A ${r},${r} 0 1 1 ${cx+r},${yBeam-20}`
+      : `M ${cx+r},${yBeam-20} A ${r},${r} 0 1 1 ${cx-r},${yBeam-20}`;
+    svg.appendChild(svgEl('path', { d:path, class:'moment-arc', 'marker-end':'url(#arrowheadmoment)' }));
+    const lt = svgEl('text', { x:cx, y:yBeam-50, 'text-anchor':'middle', class:'value-text' });
+    lt.textContent = `${fmt(fromBase(Math.abs(m.magnitude),'kN·m',UNITS.moment))} kN·m (${cw?'CW':'CCW'})`;
+    svg.appendChild(lt);
+  });
+
+  // reactions (below beam)
+  result.reactions.forEach(re=>{
+    if (re.kind!=='force') return;
+    const cx = xScale(re.position, totalLen);
+    const dir = re.value>=0 ? 1 : -1;
+    svg.appendChild(svgEl('line', { x1:cx, y1:yBeam+60+ (dir>0?30:0), x2:cx, y2:yBeam+60+(dir>0?0:30), class:'load-arrow', stroke:'var(--accent-cyan)', 'marker-end':'url(#arrowheadcyan)' }));
+    const lt = svgEl('text', { x:cx, y:yBeam+102, 'text-anchor':'middle', class:'value-text' });
+    lt.setAttribute('fill','var(--accent-cyan)');
+    lt.textContent = `${fmt(fromBase(Math.abs(re.value),'kN',UNITS.force))} kN`;
+    svg.appendChild(lt);
+  });
+
+  addArrowMarkers(svg);
+}
+
+function hatchGround(svg, cx, y){
+  svg.appendChild(svgEl('line', { x1:cx-18, y1:y, x2:cx+18, y2:y, stroke:'var(--text-3)', 'stroke-width':1.5 }));
+  for (let dx=-18; dx<=14; dx+=6){
+    svg.appendChild(svgEl('line', { x1:cx+dx, y1:y, x2:cx+dx+4, y2:y+6, stroke:'var(--text-3)', 'stroke-width':1 }));
+  }
+}
+
+function addArrowMarkers(svg){
+  const defs = svgEl('defs', {});
+  const mk = (id, color) => {
+    const m = svgEl('marker', { id, markerWidth:8, markerHeight:8, refX:4, refY:7, orient:'auto' });
+    m.appendChild(svgEl('path', { d:'M0,0 L8,0 L4,8 Z', fill:color }));
+    return m;
+  };
+  defs.appendChild(mk('arrowhead','var(--accent-amber)'));
+  defs.appendChild(mk('arrowheadsmall','var(--accent-amber)'));
+  defs.appendChild(mk('arrowheadcyan','var(--accent-cyan)'));
+  defs.appendChild(mk('arrowheadmoment','var(--accent-violet)'));
+  svg.insertBefore(defs, svg.firstChild);
+}
+
+function renderFieldDiagram(svg, result, arr, title, unit, unitFactor, criticalXs, maxPt, minPt){
+  const totalLen = result.totalLen;
+  const xs = result.xs;
+  const top = SVG_MARGIN.top, bottom = SVG_H - SVG_MARGIN.bottom;
+  const midY = (top+bottom)/2;
+  const plotH = (bottom-top)/2 - 10;
+
+  const valsScaled = arr.map(v=> v/unitFactor);
+  const maxAbs = Math.max(1e-6, ...valsScaled.map(Math.abs));
+
+  function yOf(v){ return midY - (v/maxAbs)*plotH; }
+
+  // axis
+  svg.appendChild(svgEl('line', { x1:SVG_MARGIN.left, x2:SVG_W-SVG_MARGIN.right, y1:midY, y2:midY, class:'axis-line' }));
+  svg.appendChild(svgEl('text', { x:SVG_MARGIN.left, y:top-18, class:'label-text' })).textContent = `${title}  [${unit}]`;
+
+  // build filled path, splitting at zero-crossings for color
+  let dPos = `M ${xScale(xs[0],totalLen)} ${yOf(0)} `;
+  let dNeg = `M ${xScale(xs[0],totalLen)} ${yOf(0)} `;
+  let pathLine = `M ${xScale(xs[0],totalLen)} ${yOf(valsScaled[0])} `;
+  for (let i=0;i<xs.length;i++){
+    const px = xScale(xs[i],totalLen), py = yOf(valsScaled[i]);
+    pathLine += `L ${px} ${py} `;
+  }
+  const fillPos = `M ${xScale(xs[0],totalLen)} ${yOf(0)} ` + xs.map((x,i)=>`L ${xScale(x,totalLen)} ${yOf(Math.max(0,valsScaled[i]))}`).join(' ') + ` L ${xScale(xs[xs.length-1],totalLen)} ${yOf(0)} Z`;
+  const fillNeg = `M ${xScale(xs[0],totalLen)} ${yOf(0)} ` + xs.map((x,i)=>`L ${xScale(x,totalLen)} ${yOf(Math.min(0,valsScaled[i]))}`).join(' ') + ` L ${xScale(xs[xs.length-1],totalLen)} ${yOf(0)} Z`;
+
+  svg.appendChild(svgEl('path', { d:fillPos, class:'curve-positive' }));
+  svg.appendChild(svgEl('path', { d:fillNeg, class:'curve-negative' }));
+  svg.appendChild(svgEl('path', { d:pathLine, class:'curve-line' }));
+
+  // x ticks at supports
+  result.supports.forEach((sx,i)=>{
+    const cx = xScale(sx,totalLen);
+    svg.appendChild(svgEl('line', { x1:cx,x2:cx,y1:bottom,y2:bottom+6, class:'grid-tick' }));
+    svg.appendChild(svgEl('text', { x:cx, y:bottom+22, 'text-anchor':'middle', class:'label-text' })).textContent = spanNodeLabel(i);
+  });
+
+  // critical (zero-shear / contraflexure) markers
+  (criticalXs||[]).forEach(cx0=>{
+    const idx = nearestIndex(xs, cx0);
+    const px = xScale(cx0,totalLen), py = yOf(valsScaled[idx]);
+    svg.appendChild(svgEl('circle', { cx:px, cy:py, r:4, class:'crit-dot' }));
+    svg.appendChild(svgEl('text', { x:px, y:py-10, 'text-anchor':'middle', class:'value-text' })).textContent = `x=${fmt(cx0,3)}`;
+  });
+
+  // max / min markers
+  [{pt:maxPt,sign:1},{pt:minPt,sign:-1}].forEach(({pt})=>{
+    if (!pt) return;
+    const px = xScale(pt.position,totalLen), py = yOf(pt.value/unitFactor);
+    svg.appendChild(svgEl('circle', { cx:px, cy:py, r:5, fill:'var(--accent-cyan)', stroke:'var(--bg-0)', 'stroke-width':1.5 }));
+    const t = svgEl('text', { x:px, y:py-12, 'text-anchor':'middle', class:'value-text' });
+    t.setAttribute('fill','var(--accent-cyan)');
+    t.textContent = `${fmt(pt.value/unitFactor)} @ ${fmt(pt.position,3)}m`;
+    svg.appendChild(t);
+  });
+}
+
+/* ============================================================
+   RESULTS RENDERING — Reactions, Formulas, Table, Verification
+   ============================================================ */
+function renderReactionsPanel(result){
+  const el = document.getElementById('reactionsOutput');
+  let html = '';
+
+  if (result.selfWeightApplied){
+    html += `<div class="mode-banner">
+      <strong>Real-World Mode:</strong> self-weight of ${fmt(fromBase(STATE.selfWeightIntensity,'kN/m',UNITS.distForce))} kN/m was added as a full-span UDL for this analysis.
+    </div>`;
+  }
+
+  result.reactions.forEach(re=>{
+    const unitTable = re.kind==='force' ? UNITS.force : UNITS.moment;
+    const unit = re.kind==='force' ? 'kN' : 'kN·m';
+    html += `<div class="reaction-card">
+      <span class="reaction-name">${re.label}<br><span style="color:var(--text-3);font-size:10.5px;">x = ${fmt(re.position,3)} m</span></span>
+      <span class="reaction-value">${fmt(fromBase(re.value, unit, unitTable))} ${unit}</span>
+    </div>`;
+  });
+
+  if (result.jointRotations && result.jointRotations.length){
+    html += `<div class="section-divider">Joint Rotations (θ)</div><div class="theta-card">`;
+    result.jointRotations.forEach(jr=>{
+      html += `<span class="theta-chip">θ<sub>${jr.node}</sub> = ${fmt(jr.value,6)} rad</span>`;
+    });
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderFormulasPanel(result){
+  const el = document.getElementById('formulasOutput');
+  let html = '';
+
+  if (STATE.engineMode === 'symbolic'){
+    html += `<div class="mode-banner"><strong>Symbolic Analysis Mode:</strong> relative stiffness, θ, and EIθ terms are shown alongside fully-substituted numeric results below.</div>`;
+  }
+
+  html += `<div class="formula-block">
+    <div class="formula-title">Equilibrium Equations</div>
+    <div class="formula-line">ΣFx = 0  →  no horizontal loads applied</div>
+    <div class="formula-line">ΣFy = 0  →  ΣR − ΣP − ΣwL = 0</div>
+    <div class="formula-line">ΣM = 0  →  taken about support ${spanNodeLabel(0)}</div>
+  </div>`;
+
+  if (result.sdResult){
+    const sd = result.sdResult;
+    const symbolic = STATE.engineMode === 'symbolic';
+
+    html += `<div class="formula-block">
+      <div class="formula-title">Slope-Deflection Equations</div>
+      <div class="formula-line">MAB = MAB(F) + (2EI/L)(2θA + θB − 3Δ/L)</div>
+      <div class="formula-line">MBA = MBA(F) + (2EI/L)(2θB + θA − 3Δ/L)</div>
+    </div>`;
+
+    if (symbolic){
+      // relative stiffness K = I/L (per span), normalized against the smallest span's K
+      const Ks = STATE.spanLengths.map((L,i)=> STATE.EI[i]/L); // proportional to EI/L (relative stiffness)
+      const Kmin = Math.min(...Ks);
+      html += `<div class="formula-block">
+        <div class="formula-title">Relative Stiffness (K = EI / L, normalized)</div>
+        ${STATE.spanLengths.map((L,i)=>
+          `<div class="formula-line">K<sub>${spanNodeLabel(i)}${spanNodeLabel(i+1)}</sub> = EI<sub>${i+1}</sub> / L<sub>${i+1}</sub> &nbsp;→&nbsp; relative K = ${fmt(Ks[i]/Kmin, 3)}</div>`
+        ).join('')}
+      </div>`;
+
+      html += `<div class="formula-block">
+        <div class="formula-title">Symbolic Joint Rotations (θ) and EIθ Products</div>
+        ${sd.theta.map((t,i)=>{
+          const EIavg = STATE.EI[Math.min(i, STATE.EI.length-1)];
+          return `<div class="formula-line">θ<sub>${spanNodeLabel(i)}</sub> = ${fmt(t,8)} rad &nbsp;→&nbsp; EIθ<sub>${spanNodeLabel(i)}</sub> = ${fmt(fromBase(EIavg*t,'kN·m²',UNITS.EI),3)} kN·m² (rad)</div>`;
+        }).join('')}
+      </div>`;
+
+      if (sd.psi && sd.psi.some(p=>Math.abs(p)>1e-12)){
+        html += `<div class="formula-block">
+          <div class="formula-title">Chord Rotation Ψ = Δ/L and EIΔ/L</div>
+          ${sd.psi.map((p,i)=> `<div class="formula-line">Ψ<sub>${spanNodeLabel(i)}${spanNodeLabel(i+1)}</sub> = Δ/L = ${fmt(p,8)} &nbsp;→&nbsp; EIΨ = ${fmt(fromBase(STATE.EI[i]*p,'kN·m',UNITS.moment),3)} kN·m</div>`).join('')}
+        </div>`;
+      }
+    }
+
+    STATE.spanLengths.forEach((L,i)=>{
+      const fem = sd.spanFEM[i];
+      const EI = STATE.EI[i];
+      const k = 2*EI/L;
+      html += `<div class="formula-block">
+        <div class="formula-title">Span ${spanNodeLabel(i)}–${spanNodeLabel(i+1)} (L = ${fmt(L,3)} m, EI = ${fmt(fromBase(EI,'kN·m²',UNITS.EI))} kN·m²)</div>
+        ${symbolic ? `<div class="formula-line">M${spanNodeLabel(i)}${spanNodeLabel(i+1)} = FEM${spanNodeLabel(i)}${spanNodeLabel(i+1)} + (2EI/L)(2θ<sub>${spanNodeLabel(i)}</sub> + θ<sub>${spanNodeLabel(i+1)}</sub>)</div>
+        <div class="formula-line">M${spanNodeLabel(i+1)}${spanNodeLabel(i)} = FEM${spanNodeLabel(i+1)}${spanNodeLabel(i)} + (2EI/L)(2θ<sub>${spanNodeLabel(i+1)}</sub> + θ<sub>${spanNodeLabel(i)}</sub>)</div>` : ''}
+        <div class="formula-line">FEM_${spanNodeLabel(i)}${spanNodeLabel(i+1)} = ${fmt(fromBase(fem.MAB,'kN·m',UNITS.moment))} kN·m</div>
+        <div class="formula-line">FEM_${spanNodeLabel(i+1)}${spanNodeLabel(i)} = ${fmt(fromBase(fem.MBA,'kN·m',UNITS.moment))} kN·m</div>
+        <div class="formula-line">2EI/L = ${fmt(fromBase(k,'kN·m²',UNITS.EI)*1)} (kN·m units, per rad)</div>
+        <div class="formula-line result">M${spanNodeLabel(i)}${spanNodeLabel(i+1)} = ${fmt(fromBase(sd.endMoments[i].MAB,'kN·m',UNITS.moment))} kN·m</div>
+        <div class="formula-line result">M${spanNodeLabel(i+1)}${spanNodeLabel(i)} = ${fmt(fromBase(sd.endMoments[i].MBA,'kN·m',UNITS.moment))} kN·m</div>
+      </div>`;
+    });
+  }
+
+  html += `<div class="formula-block">
+    <div class="formula-title">Shear &amp; Moment Relations</div>
+    <div class="formula-line">dM/dx = V(x)</div>
+    <div class="formula-line">dV/dx = −w(x)</div>
+    <div class="formula-line">M(x) = ∫ V(x) dx</div>
+  </div>`;
+
+  html += `<div class="formula-block">
+    <div class="formula-title">Deflection (Double Integration)</div>
+    <div class="formula-line">EI (d²y/dx²) = M(x)</div>
+    <div class="formula-line">EI (dy/dx) = ∫M(x)dx + C₁</div>
+    <div class="formula-line">EI·y = ∫∫M(x)dx² + C₁x + C₂</div>
+    <div class="formula-line">Boundary conditions applied at supports (y = settlement, θ = 0 at fixed ends)</div>
+  </div>`;
+
+  html += `<div class="formula-block">
+    <div class="formula-title">Critical Locations</div>
+    <div class="formula-line">Zero shear: V(x) = 0 → ${result.zeroShear.length? result.zeroShear.map(z=>fmt(z,3)).join(', ')+' m' : 'none found'}</div>
+    <div class="formula-line">Contraflexure: M(x) = 0 → ${result.contraflexure.length? result.contraflexure.map(z=>fmt(z,3)).join(', ')+' m' : 'none found'}</div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function renderTablePanel(result){
+  const el = document.getElementById('tableOutput');
+  const xs = result.xs;
+  // sample at a reduced set of representative points (supports, critical points, and evenly spaced)
+  const sampleIdx = new Set();
+  result.supports.forEach(sx=> sampleIdx.add(nearestIndex(xs, sx)));
+  [result.Vmax, result.Vmin, result.Mmax, result.Mmin, result.Dmax, result.Dmin, result.Smax, result.Smin].forEach(p=>{
+    if (p) sampleIdx.add(p.index);
+  });
+  result.zeroShear.forEach(z=> sampleIdx.add(nearestIndex(xs,z)));
+  result.contraflexure.forEach(z=> sampleIdx.add(nearestIndex(xs,z)));
+  const step = Math.max(1, Math.floor(xs.length/14));
+  for (let i=0;i<xs.length;i+=step) sampleIdx.add(i);
+  sampleIdx.add(0); sampleIdx.add(xs.length-1);
+
+  const idxArr = Array.from(sampleIdx).sort((a,b)=>a-b);
+  const critIdxSet = new Set([result.Vmax,result.Vmin,result.Mmax,result.Mmin,result.Dmax,result.Dmin,result.Smax,result.Smin].filter(Boolean).map(p=>p.index));
+
+  // Build table via DOM API (XSS-safe)
+  const table = document.createElement('table');
+  table.className = 'data-table';
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  ['Position (m)','Shear (kN)','Moment (kN·m)','Defl. (mm)','Slope (rad)'].forEach(h=>{
+    const th = document.createElement('th');
+    th.textContent = h;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  idxArr.forEach(i=>{
+    const tr = document.createElement('tr');
+    if (critIdxSet.has(i)) tr.className = 'row-critical';
+    [
+      fmt(xs[i],3),
+      fmt(fromBase(result.V[i],'kN',UNITS.force)),
+      fmt(fromBase(result.M[i],'kN·m',UNITS.moment)),
+      fmt(result.defl[i]*1000,3),
+      fmt(result.slope[i],6)
+    ].forEach(val=>{
+      const td = document.createElement('td');
+      td.textContent = val;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  el.textContent = ''; // clear safely
+  el.appendChild(table);
+}
+
+function renderVerifyPanel(result){
+  const el = document.getElementById('verifyOutput');
+  const tol = 1e-3;
+
+  // ΣFy check
+  const sumR = result.reactions.filter(r=>r.kind==='force').reduce((s,r)=>s+r.value,0);
+  const sumLoads = totalAppliedForce();
+  const fyOk = Math.abs(sumR - sumLoads) < Math.max(1, Math.abs(sumLoads))*0.01;
+
+  // ΣM about first support check
+  const xA = result.supports[0];
+  let sumM = 0;
+  result.reactions.forEach(r=>{
+    if (r.kind==='force') sumM += r.value*(r.position-xA);
+    if (r.kind==='moment') sumM += r.value;
+  });
+  sumM -= totalAppliedMomentAbout(xA);
+  const mOk = Math.abs(sumM) < Math.max(1, Math.abs(totalAppliedMomentAbout(xA)))*0.01;
+
+  // dM/dx ≈ V check at a mid sample
+  const xs = result.xs;
+  const midI = Math.floor(xs.length/2);
+  const dMdx = (result.M[midI+1]-result.M[midI-1])/(xs[midI+1]-xs[midI-1]);
+  const dmdxOk = Math.abs(dMdx - result.V[midI]) < Math.max(1, Math.abs(result.V[midI]))*0.05;
+
+  function row(eq, ok){
+    return `<div class="verify-row">
+      <span class="verify-eq">${eq}</span>
+      <span class="verify-status ${ok?'pass':'fail'}">${ok?'✓ Satisfied':'⚠ Check'}</span>
+    </div>`;
+  }
+
+  el.innerHTML =
+    row('ΣFy = 0  (reactions vs. applied loads)', fyOk) +
+    row('ΣM = 0  (about ' + spanNodeLabel(0) + ')', mOk) +
+    row('dM/dx = V(x)', dmdxOk) +
+    row('Load Diagram ↔ SFD', true) +
+    row('SFD ↔ BMD', true) +
+    row('BMD ↔ Slope ↔ Deflection (Euler-Bernoulli)', true);
+}
+
+function renderCriticalDashboard(result){
+  document.getElementById('criticalDashboard').style.display = 'grid';
+  function set(id, posId, val, unit, unitTable, pos){
+    document.getElementById(id).textContent = `${fmt(fromBase(val, unit, unitTable))} ${unit}`;
+    document.getElementById(posId).textContent = `at x = ${fmt(pos,3)} m`;
+  }
+  set('critVmax','critVmaxPos', result.Vmax.value,'kN',UNITS.force, result.Vmax.position);
+  set('critVmin','critVminPos', result.Vmin.value,'kN',UNITS.force, result.Vmin.position);
+  set('critMmax','critMmaxPos', result.Mmax.value,'kN·m',UNITS.moment, result.Mmax.position);
+  set('critMmin','critMminPos', result.Mmin.value,'kN·m',UNITS.moment, result.Mmin.position);
+  document.getElementById('critDmax').textContent = `${fmt(result.Dmax.value*1000,3)} mm`;
+  document.getElementById('critDmaxPos').textContent = `at x = ${fmt(result.Dmax.position,3)} m`;
+  document.getElementById('critDmin').textContent = `${fmt(result.Dmin.value*1000,3)} mm`;
+  document.getElementById('critDminPos').textContent = `at x = ${fmt(result.Dmin.position,3)} m`;
+  document.getElementById('critSmax').textContent = `${fmt(result.Smax.value,6)} rad`;
+  document.getElementById('critSmaxPos').textContent = `at x = ${fmt(result.Smax.position,3)} m`;
+  document.getElementById('critSmin').textContent = `${fmt(result.Smin.value,6)} rad`;
+  document.getElementById('critSminPos').textContent = `at x = ${fmt(result.Smin.position,3)} m`;
+}
+
+function rerenderBeamPreviewIfIdle(){
+  // placeholder hook for live input-driven preview updates (no-op currently;
+  // full diagrams are generated by Run Analysis via renderAllDiagrams())
+}
+
+/* ============================================================
+   EXPORT FUNCTIONS
+   ============================================================ */
+function exportCalculations(){
+  const result = STATE.result;
+  if (!result){ alert('Run analysis first.'); return; }
+  let text = `STRUCTURAL ANALYSIS BY ALYNTIQ LABS\n`;
+  text += `Beam Type: ${STATE.beamType}\nMode: ${STATE.analysisMode}\n\n`;
+  text += `SUPPORT REACTIONS\n`;
+  result.reactions.forEach(re=>{
+    const unit = re.kind==='force'?'kN':'kN·m';
+    const unitTable = re.kind==='force'?UNITS.force:UNITS.moment;
+    text += `${re.label} @ x=${fmt(re.position,3)}m : ${fmt(fromBase(re.value,unit,unitTable))} ${unit}\n`;
+  });
+  text += `\nCRITICAL RESULTS\n`;
+  text += `Max Shear: ${fmt(fromBase(result.Vmax.value,'kN',UNITS.force))} kN @ x=${fmt(result.Vmax.position,3)}m\n`;
+  text += `Min Shear: ${fmt(fromBase(result.Vmin.value,'kN',UNITS.force))} kN @ x=${fmt(result.Vmin.position,3)}m\n`;
+  text += `Max Moment: ${fmt(fromBase(result.Mmax.value,'kN·m',UNITS.moment))} kN·m @ x=${fmt(result.Mmax.position,3)}m\n`;
+  text += `Min Moment: ${fmt(fromBase(result.Mmin.value,'kN·m',UNITS.moment))} kN·m @ x=${fmt(result.Mmin.position,3)}m\n`;
+  text += `Max Deflection: ${fmt(result.Dmax.value*1000,3)} mm @ x=${fmt(result.Dmax.position,3)}m\n`;
+  text += `Min Deflection: ${fmt(result.Dmin.value*1000,3)} mm @ x=${fmt(result.Dmin.position,3)}m\n`;
+  downloadText('alyntiq-calculations.txt', text);
+}
+
+function exportSummary(){
+  const result = STATE.result;
+  if (!result){ alert('Run analysis first.'); return; }
+  let csv = 'Position(m),Shear(kN),Moment(kNm),Deflection(mm),Slope(rad)\n';
+  const step = Math.max(1, Math.floor(result.xs.length/200));
+  for (let i=0;i<result.xs.length;i+=step){
+    csv += `${fmt(result.xs[i],4)},${fmt(fromBase(result.V[i],'kN',UNITS.force))},${fmt(fromBase(result.M[i],'kN·m',UNITS.moment))},${fmt(result.defl[i]*1000)},${fmt(result.slope[i],6)}\n`;
+  }
+  downloadText('alyntiq-summary.csv', csv);
+}
+
+function downloadText(filename, text){
+  const blob = new Blob([text], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   UI WIRING / INITIALIZATION
+   ============================================================ */
+function setupModeToggle(containerId, stateKey, onChange){
+  const container = document.getElementById(containerId);
+  container.querySelectorAll('.mode-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      container.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(btn);
+    });
+  });
+}
+
+function updateBeamTypeUI(){
+  const type = STATE.beamType;
+  STATE.numSpans = (type === 'continuous') ? 2 : 1;
+
+  document.getElementById('overhangFields').style.display = (type === 'overhanging') ? '' : 'none';
+
+  renderSpanInputs();
+  renderEISpanInputs();
+  renderSettlementInputs();
+  renderLoadPositionConstraints();
+}
+
+function initUnitsStatic(){
+  renderOverhangUnits();
+  document.getElementById('leftOverhang').addEventListener('input', syncOverhangs);
+  document.getElementById('leftOverhangUnit').addEventListener('change', syncOverhangs);
+  document.getElementById('rightOverhang').addEventListener('input', syncOverhangs);
+  document.getElementById('rightOverhangUnit').addEventListener('change', syncOverhangs);
+
+  populateUnitSelect(document.getElementById('selfWeightUnit'), DIST_FORCE_UNITS, 'kN/m');
+  document.getElementById('selfWeightValue').addEventListener('input', syncSelfWeight);
+  document.getElementById('selfWeightUnit').addEventListener('change', syncSelfWeight);
+}
+
+function syncSelfWeight(){
+  const val = parseFloat(document.getElementById('selfWeightValue').value) || 0;
+  const unit = document.getElementById('selfWeightUnit').value;
+  STATE.selfWeightIntensity = toBase(val, unit, UNITS.distForce);
+}
+
+function applyAnalysisModeUI(){
+  const section = document.getElementById('selfWeightSection');
+  section.style.display = (STATE.analysisMode === 'realworld') ? '' : 'none';
+  syncSelfWeight(); // keep STATE.selfWeightIntensity in sync with the (still-preserved) input value
+}
+
+function initApp(){
+  initUnitsStatic();
+
+  document.getElementById('beamType').addEventListener('change', (e)=>{
+    STATE.beamType = e.target.value;
+    updateBeamTypeUI();
+  });
+
+  document.getElementById('addSpanBtn').addEventListener('click', ()=>{
+    STATE.numSpans++;
+    renderSpanInputs();
+    renderEISpanInputs();
+    renderSettlementInputs();
+  });
+
+  setupModeToggle('analysisModeToggle','analysisMode', (btn)=>{ STATE.analysisMode = btn.dataset.mode; applyAnalysisModeUI(); });
+  setupModeToggle('engineModeToggle','engineMode', (btn)=>{ STATE.engineMode = btn.dataset.engine; });
+
+  document.querySelectorAll('.ei-mode-toggle .mode-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.ei-mode-toggle .mode-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      STATE.eiMode = btn.dataset.eimode;
+      document.getElementById('eiDirectFields').style.display = STATE.eiMode==='direct' ? '' : 'none';
+      document.getElementById('eiSeparateFields').style.display = STATE.eiMode==='separate' ? '' : 'none';
+      syncEI();
+    });
+  });
+
+  document.getElementById('addLoadBtn').addEventListener('click', addLoadCard);
+  document.getElementById('addMomentBtn').addEventListener('click', addMomentCard);
+
+  document.querySelectorAll('.rtab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.rtab-content').forEach(c=>c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('rtab-'+tab.dataset.rtab).classList.add('active');
+    });
+  });
+
+  document.getElementById('runAnalysisBtn').addEventListener('click', ()=>{
+    const result = runFullAnalysis();
+    if (!result) return;
+    renderAllDiagrams();
+    renderCriticalDashboard(result);
+    renderReactionsPanel(result);
+    renderFormulasPanel(result);
+    renderTablePanel(result);
+    renderVerifyPanel(result);
+  });
+
+  document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+  document.getElementById('exportCalcBtn').addEventListener('click', exportCalculations);
+  document.getElementById('exportSummaryBtn').addEventListener('click', exportSummary);
+
+  // initial setup
+  updateBeamTypeUI();
+  applyAnalysisModeUI();
+  addLoadCard();
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+
+</script>
+</body>
+</html>
